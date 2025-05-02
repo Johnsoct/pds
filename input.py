@@ -35,45 +35,12 @@ def collect_input(type):
 
     return normalized_usr_input 
 
-def convert_to_float(input):
-    try:
-        str_input = convert_to_str(input)
-        stripped_str_input = strip_characters_from_str(str_input, C.NUMERICAL_CHARACTERS)
-        return float(stripped_str_input)
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"Could not convert {input!r} to float") from e
+def normalize_user_input(input):
+    return strip_dangerous_characters_from_user_input(input.lower())
 
-def convert_to_str(input):
+def strip_dangerous_characters_from_user_input(input):
     if isinstance(input, str):
-        return input
-    else:
-        try:
-            return str(input)
-        except Exception as e:
-            raise Exception(f"Could not convert {input!r} to string") from e
-
-def normalize_user_input(type, input):
-    normalized_user_input = input.lower()
-    
-    if type == "numerical":
-        normalized_user_input = strip_characters_from_str(normalized_user_input, C.NUMERICAL_CHARACTERS)
-
-        if normalized_user_input == "":
-            normalized_user_input = "0"
-
-        if "%" in input:
-            normalized_user_input = normalized_user_input.replace("%", "")
-
-            if normalized_user_input == "":
-                normalized_user_input = "0"
-            
-            normalized_user_input = str(convert_to_float(normalized_user_input) / 100)
-
-    return normalized_user_input
-
-def strip_characters_from_str(input, characters):
-    if isinstance(input, str):
-        pattern = f"[{''.join(re.escape(c) for c in characters)}]"
+        pattern = f"[{''.join(re.escape(c) for c in C.DISALLOWED_DANGEROUS_CHARACTERS)}]"
         return re.sub(pattern, "", input)
     else:
         raise TypeError(f"{input!r} is not a string; cannot strip")
@@ -85,32 +52,37 @@ def validate_input_frequency(input):
         return False
 
 def validate_input_numerical(input):
-    # Stripped clean
-    if input == "":
-        print(f"{input!r} could not be converted to a decimal")
-        return False
-
     try:
-        convert_to_float(input)
+        float(input)
         return True
     except (TypeError, ValueError):
         print(f"{input!r} could not be converted to a decimal")
         return False
 
-# type = frequency, numerical
+def validate_input_percentage(input):
+    if float(input) >= 0:
+        return True
+    else:
+        return False
+
+# type = frequency, numerical, percentage
 # frequency = constantsclass.FREQUENCIES
 def validate_input(type, normalized_user_input):
     valid = True
 
-    if type == "numerical":
-        valid = validate_input_numerical(normalized_user_input)
-    elif type == "frequency":
+    if type == "frequency":
         valid = validate_input_frequency(normalized_user_input)
+    elif type == "numerical":
+        valid = validate_input_numerical(normalized_user_input)
+    elif type == "percentage":
+        valid = validate_input_percentage(normalized_user_input)
 
     return valid
     
 def main():
     print("I'm going to ask you a series of questions about your debts and any additional contributions you want to make towards your monthly debt. Each debt will require the original loan amount, interest rate, term length, and the current balance.")
+    print("")
+    print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325")
 
     collect_debt_information()
 
