@@ -8,6 +8,8 @@ from constants import Constants
 C = Constants()
 
 class TestValidateInput:
+    def collect_input(self):
+    # TODO: the stored input value should update if the function recurses
     def test_normalize_user_input(self):
         passing_tests = [
             ("frequency", "MONTHLY", "monthly"),

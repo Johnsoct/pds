@@ -14,26 +14,22 @@ def collect_debt_information():
     loan_amount = None
     term_length = None
 
-    print("What is the current balance of the loan?")
-    current_balance = collect_input("numerical")
+    current_balance = collect_input("numerical", "What is the current balance of the loan?")
+    interest_rate = collect_input("numerical", "What is the interest rate of the loan?")
+    loan_amount = collect_input("numerical", "What was the original amount of the loan?")
+    term_length = collect_input("numerical", "What is the term length of the loan?")
 
-    print("What is the interest rate of the loan?")
-    interest_rate = collect_input("numerical")
+    return current_balance, interest_rate, loan_amount, term_length
 
-    print("What was the original amount of the loan?")
-    loan_amount = collect_input("numerical")
+def collect_input(type, prompt):
+    user_input = input(prompt)
+    normalized_user_input = normalize_user_input(user_input)
 
-    print("What is the term length of the loan?")
-    term_length = collect_input("numerical")
+    if not validate_input(type, normalized_user_input):
+        print(f"{user_input} was not valid")
+        collect_input(type, prompt)
 
-def collect_input(type):
-    normalized_usr_input = normalize_user_input(type, input())
-
-    if validate_input(type, normalized_usr_input):
-        print(f"{normalized_usr_input} was not valid")
-        # TODO: do something
-
-    return normalized_usr_input 
+    return normalized_user_input 
 
 def normalize_user_input(input):
     return strip_dangerous_characters_from_user_input(input.lower())
@@ -84,5 +80,9 @@ def main():
     print("")
     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325")
 
-    collect_debt_information()
+    loan1 = collect_debt_information()
 
+    print(loan1)
+
+if __name__ == "__main__":
+    main()
