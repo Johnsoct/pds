@@ -9,7 +9,9 @@ C = Constants()
 
 class TestValidateInput:
     def collect_input(self):
-    # TODO: the stored input value should update if the function recurses
+        # TODO: the stored input value should update if the function recurses
+        pass
+
     def test_normalize_user_input(self):
         passing_tests = [
             ("frequency", "MONTHLY", "monthly"),
