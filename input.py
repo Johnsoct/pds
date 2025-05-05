@@ -1,9 +1,8 @@
 # Packages
 import re
 # Constants
-from constants import Constants
+from constants import C 
 
-C = Constants()
 additional_contribution_amount = 0
 additional_contribution_frequency = 'monthly'
 debts = [] # loan_amount, interest_rate, term_length, current_balance
@@ -18,9 +17,9 @@ def collect_debt_information():
 
 def collect_input(type, prompt):
     user_input = input(prompt)
-    normalized_user_input = normalize_user_input(user_input)
+    normalized_user_input = normalize_user_input(user_input, C.get_disallowed_dangerous_characters_regex())
 
-    if not validate_input(type, normalized_user_input):
+    if not validate_input(type, normalized_user_input, C.FREQUENCIES):
         print(f"{user_input} was not valid")
         collect_input(type, prompt)
 
@@ -31,18 +30,20 @@ def introduce_user_to_process():
     print("")
     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325")
 
-def normalize_user_input(input):
-    return strip_dangerous_characters_from_user_input(input.lower())
-
-def strip_dangerous_characters_from_user_input(input):
+def normalize_user_input(input, replace_pattern):
     if isinstance(input, str):
-        pattern = f"[{''.join(re.escape(c) for c in C.DISALLOWED_DANGEROUS_CHARACTERS)}]"
+        return strip_dangerous_characters_from_user_input(replace_pattern, input.lower())
+    else:
+        raise TypeError(f"{input!r} is not a string; cannot normalize")
+
+def strip_dangerous_characters_from_user_input(pattern, input):
+    if isinstance(input, str):
         return re.sub(pattern, "", input)
     else:
         raise TypeError(f"{input!r} is not a string; cannot strip")
 
-def validate_input_frequency(input):
-    if input in C.FREQUENCIES:
+def validate_input_frequency(input, options):
+    if input in options:
         return True
     else:
         return False
@@ -61,13 +62,11 @@ def validate_input_percentage(input):
     else:
         return False
 
-# type = frequency, numerical, percentage
-# frequency = constantsclass.FREQUENCIES
-def validate_input(type, normalized_user_input):
+def validate_input(type, normalized_user_input, options):
     valid = True
 
     if type == "frequency":
-        valid = validate_input_frequency(normalized_user_input)
+        valid = validate_input_frequency(normalized_user_input, options)
     elif type == "numerical":
         valid = validate_input_numerical(normalized_user_input)
     elif type == "percentage":

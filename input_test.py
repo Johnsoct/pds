@@ -3,9 +3,7 @@ import pytest
 # Modules
 from input import normalize_user_input, strip_dangerous_characters_from_user_input, validate_input, validate_input_frequency, validate_input_numerical, validate_input_percentage
 # Constants
-from constants import Constants
-
-C = Constants()
+from constants import C 
 
 class TestValidateInput:
     def collect_input(self):
@@ -25,7 +23,10 @@ class TestValidateInput:
         ]
 
         for test in passing_tests:
-            assert normalize_user_input(test[1]) == test[2]
+            assert normalize_user_input(
+                test[1], 
+                C.get_disallowed_dangerous_characters_regex()
+            ) == test[2]
 
     def test_strip_dangerous_characters_from_str(self):
         failing_tests = [
@@ -49,10 +50,16 @@ class TestValidateInput:
 
         for test in failing_tests:
             with pytest.raises(TypeError):
-                strip_dangerous_characters_from_user_input(test)
+                strip_dangerous_characters_from_user_input(
+                    C.get_disallowed_dangerous_characters_regex(),
+                    test
+                )
 
         for test in passing_tests:
-            assert test[1] == strip_dangerous_characters_from_user_input(test[0])
+            assert test[1] == strip_dangerous_characters_from_user_input(
+                C.get_disallowed_dangerous_characters_regex(),
+                test[0]
+            )
 
     def test_validate_input(self):
         failling_tests = [
@@ -96,22 +103,22 @@ class TestValidateInput:
             passing_tests.append(("frequency", frequency))
 
         for test in failling_tests:
-            normalized_user_input = normalize_user_input(test[1])
-            assert not validate_input(test[0], normalized_user_input)
+            normalized_user_input = normalize_user_input(test[1], C.get_disallowed_dangerous_characters_regex())
+            assert not validate_input(test[0], normalized_user_input, C.FREQUENCIES)
 
         for test in passing_tests:
-            normalized_user_input = normalize_user_input(test[1])
-            assert validate_input(test[0], normalized_user_input)
+            normalized_user_input = normalize_user_input(test[1], C.get_disallowed_dangerous_characters_regex())
+            assert validate_input(test[0], normalized_user_input, C.FREQUENCIES)
 
     def test_validate_input_frequency(self):
         failing_tests = ["bimonthly", "biweekly", "tacos", "month", "week", "bi-month", "bi-week", "year"]
         passing_tests = C.FREQUENCIES
 
         for test in failing_tests:
-            assert not validate_input_frequency(test)
+            assert not validate_input_frequency(test, C.FREQUENCIES)
 
         for test in passing_tests:
-            assert validate_input_frequency(test)
+            assert validate_input_frequency(test, C.FREQUENCIES)
 
     def test_validate_input_numerical(self):
         failing_tests = ["a", "!", "$", ".", ",", "%", "11,111.00", "1,000,000", "$1.00", "$1"]
