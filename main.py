@@ -1,5 +1,6 @@
-from amortization import *
-from input import (* as user_input)
+# Modules
+import amortization
+import input as user_input
 
 def main():
     # additional_contribution_amount: number,
@@ -10,4 +11,4 @@ def main():
     #   original_term_length: number,
     #   current_balanace
     # }]
-    input()
+    user_input.main()
