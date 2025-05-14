@@ -57,7 +57,7 @@ def confirm_additional_contribution_intent(testing = False):
 
     return get_user_confirmation_comparison(additional_contribution_confirmation)
 
-def confirm_another_debt(testing = False):
+def confirm_additional_debt_intent(testing = False):
     print()
     print("Would you like to enter another debt?")
     print("---------------------------------------")
@@ -179,7 +179,7 @@ def step_collect_debts():
         if user_confirmation:
             debts.append(debt_information)
 
-            user_confirmation = confirm_another_debt()
+            user_confirmation = confirm_additional_debt_intent()
 
             if user_confirmation:
                 continue

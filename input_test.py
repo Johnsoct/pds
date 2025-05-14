@@ -2,7 +2,7 @@
 import pytest
 import sys
 # Modules
-from input import collect_additional_contribution_information, collect_input, confirm_additional_contribution_information, confirm_additional_contribution_intent, confirm_another_debt, confirm_debt_information, get_options, get_user_confirmation_comparison, is_float_positive, normalize_user_input, strip_dangerous_characters_from_user_input, validate_input, validate_input_option_in_options, validate_input_numerical, validate_input_option_in_options
+from input import *
 # Constants
 from constants import C 
 
@@ -138,28 +138,28 @@ class TestValidateInput:
             else:
                 assert not confirm_additional_contribution_intent()
 
-    def test_confirm_another_debt(self, capsys, monkeypatch):
+    def test_confirm_additional_debt_intent(self, capsys, monkeypatch):
         failing_tests = ["yess", "yers", "yeh", "nah", "nay", "noo"]
         passing_tests = [*C.CONFIRMATIONS]
 
         for test in failing_tests:
             monkeypatch.setattr("builtins.input", lambda _: test)
 
-            confirm_another_debt(testing = True)
+            confirm_additional_debt_intent(testing = True)
             
             # Prepare the stdout messages to assert against
-            confirm_another_debt_stdout = f"{test!r} was not valid"
+            confirm_additional_debt_intent_stdout = f"{test!r} was not valid"
             test_stdout = capsys.readouterr().out
             
-            assert f"{confirm_another_debt_stdout}" in f"{test_stdout}"
+            assert f"{confirm_additional_debt_intent_stdout}" in f"{test_stdout}"
 
         for test in passing_tests:
             monkeypatch.setattr("builtins.input", lambda _: test)
             
             if "y" in test:
-                assert confirm_another_debt()
+                assert confirm_additional_debt_intent()
             else:
-                assert not confirm_another_debt()
+                assert not confirm_additional_debt_intent()
 
     def test_confirm_additional_contribution_information(self, capsys, monkeypatch):
         additional_contribution_information = ("monthly", "$100.00")
@@ -198,9 +198,9 @@ class TestValidateInput:
             assert f"{confirm_debt_information_stdout}" in f"{test_stdout}"
 
             if "y" in test:
-                assert confirm_another_debt()
+                assert confirm_additional_debt_intent()
             else:
-                assert not confirm_another_debt()
+                assert not confirm_additional_debt_intent()
 
     def test_get_options(self):
         assert get_options("confirmation") == C.CONFIRMATIONS
@@ -219,7 +219,6 @@ class TestValidateInput:
         for test in true_tests:
             assert get_user_confirmation_comparison(
                 normalize_user_input(test, C.get_disallowed_dangerous_characters_regex())
-
             )
 
     def test_is_float_positive(self):
@@ -267,7 +266,23 @@ class TestValidateInput:
 			("11,111.00", "11111.00"),
 			("1,000,000", "1000000"),
 			("$1.00", "1.00"),
-			("$1", "1")
+			("$1", "1"),
+            (";1", "1"),
+            ("&&1", "1"),
+            ("||1", "1"),
+            ("|1", "1"),
+            ("(1", "1"),
+            (")1", "1"),
+            ("`1", "1"),
+            (">1", "1"),
+            (">>1", "1"),
+            ("<1", "1"),
+            ("*1", "1"),
+            ("?1", "1"),
+            ("~1", "1"),
+            ("$1", "1"),
+            (",1", "1"),
+            ("%1", "1"),
         ]
 
         for test in failing_tests:
