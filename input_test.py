@@ -2,7 +2,7 @@
 import pytest
 import sys
 # Modules
-from input import collect_additional_contribution_information, collect_input, confirm_additional_contribution_information, confirm_additional_contribution_intent, confirm_another_debt, confirm_debt_information, get_options, get_user_confirmation_comparison, is_float_positive, normalize_user_input, strip_dangerous_characters_from_user_input, validate_input, validate_input_option_in_options, validate_input_numerical, validate_input_option_in_options
+from input import collect_additional_contribution_information, collect_input, confirm_additional_contribution_information, confirm_additional_contribution_intent, confirm_another_debt, confirm_debt_information, format_currency, get_options, get_user_confirmation_comparison, is_float_positive, normalize_user_input, strip_dangerous_characters_from_user_input, validate_input, validate_input_option_in_options, validate_input_numerical, validate_input_option_in_options
 # Constants
 from constants import C 
 
@@ -201,6 +201,17 @@ class TestValidateInput:
                 assert confirm_another_debt()
             else:
                 assert not confirm_another_debt()
+
+    def test_format_currency(self):
+        passing_tests = (
+                [100, False, "100.00"],
+                [100.00, False, "100.00"],
+                [1200, False, "1,200.00"],
+                [100.5, False, "100.50"],
+        )
+
+        for test in passing_tests:
+            assert format_currency(test[0], test[1]) == test[2]
 
     def test_get_options(self):
         assert get_options("confirmation") == C.CONFIRMATIONS

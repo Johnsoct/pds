@@ -1,4 +1,5 @@
 # Packages
+import locale
 import re
 # Constants
 from constants import C 
@@ -109,6 +110,10 @@ def display_debt_information(debt_information):
     print(f"Interest rate: {debt_information[1]}%")
     print(f"Original loan amount: ${debt_information[2]}")
     print(f"Term length: {debt_information[3]} months")
+
+def format_currency(integer, include_sign = False):
+    locale.setlocale(locale.LC_ALL, '')
+    return locale.currency(integer, symbol = include_sign, grouping = True)
 
 def get_options(type):
     if type == "frequency":
