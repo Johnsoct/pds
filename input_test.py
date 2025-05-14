@@ -162,7 +162,7 @@ class TestValidateInput:
                 assert not confirm_additional_debt_intent()
 
     def test_confirm_additional_contribution_information(self, capsys, monkeypatch):
-        additional_contribution_information = ("monthly", "$100.00")
+        additional_contribution_information = ("monthly", "100.00")
         passing_tests = [*C.CONFIRMATIONS]
 
         for test in passing_tests:
@@ -171,7 +171,7 @@ class TestValidateInput:
             confirm_additional_contribution_information(*additional_contribution_information)
             
             # Prepare the stdout messages to assert against
-            confirm_additional_contribution_information_stdout = f"Frequency: {additional_contribution_information[0]}\nAmount: ${additional_contribution_information[1]}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"           
+            confirm_additional_contribution_information_stdout = f"Frequency: {additional_contribution_information[0]}\nAmount: ${format_currency(additional_contribution_information[1])}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"           
             test_stdout = capsys.readouterr().out
             
             assert f"{confirm_additional_contribution_information_stdout}" in f"{test_stdout}"
@@ -192,7 +192,7 @@ class TestValidateInput:
             confirm_debt_information(*debt_information)
             
             # Prepare the stdout messages to assert against
-            confirm_debt_information_stdout = f"Current balance: ${debt_information[0]}\nInterest rate: {debt_information[1]}%\nOriginal loan amount: ${debt_information[2]}\nTerm length: {debt_information[3]} months\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to adding additional debts, if any.\n"           
+            confirm_debt_information_stdout = f"Current balance: ${format_currency(debt_information[0])}\nInterest rate: {debt_information[1]}%\nOriginal loan amount: ${format_currency(debt_information[2])}\nTerm length: {debt_information[3]} months\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to adding additional debts, if any.\n"           
             test_stdout = capsys.readouterr().out
             
             assert f"{confirm_debt_information_stdout}" in f"{test_stdout}"
@@ -208,6 +208,10 @@ class TestValidateInput:
                 [100.00, False, "100.00"],
                 [1200, False, "1,200.00"],
                 [100.5, False, "100.50"],
+                [100, True, "$100.00"],
+                [100.00, True, "$100.00"],
+                [1200, True, "$1,200.00"],
+                [100.5, True, "$100.50"],
         )
 
         for test in passing_tests:
