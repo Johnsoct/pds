@@ -110,13 +110,13 @@ def display_additional_contribution_information(additional_contribution_informat
     print("---------------------------------------")
     print("Here is the information you entered:\n")
     print(f"Frequency: {additional_contribution_information[1]}")
-    print(f"Amount: ${format_currency(additional_contribution_information[0])}")
+    print(f"Amount: {format_currency(additional_contribution_information[0])}")
 
 def display_debt_information(debt_information):
     print("Here is the information you entered:\n")
-    print(f"Current balance: ${format_currency(debt_information[0])}")
+    print(f"Current balance: {format_currency(debt_information[0])}")
     print(f"Interest rate: {debt_information[1]}%")
-    print(f"Original loan amount: ${format_currency(debt_information[2])}")
+    print(f"Original loan amount: {format_currency(debt_information[2])}")
     print(f"Term length: {debt_information[3]} months")
 
 def format_currency(string, include_sign = True):
@@ -258,10 +258,10 @@ def main():
     state["additional_contribution_amount"] = additional_contribution[0]
     state["additional_contribution_frequency"] = additional_contribution[1]
     state["debts"] = debts
+
     write_to_tmp_file(state, "/home/taylor/dev/pds")
 
-    print(debts)
-    print(additional_contribution)
+    return state
 
 if __name__ == "__main__":
     main()
