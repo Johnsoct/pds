@@ -1,5 +1,21 @@
 # Logic: Expedited Amortization Schedule
 
+## Formula
+
+### Amortization
+Principle payment = TMP - (OLB * (Interest Rate / 12 Months))
+
+TMP = Total monthly payment
+OLD = Outstanding loan balance
+
+### Total monthly payment
+
+Total payment = Loan amount x ((i * (1 + i)^n) / ((i + 1)^n -1))
+
+i = Monthly interest payment (interest rate / 12 months)
+n = Number of payments (term length in months)
+
+
 ## Notes
 
 * All input will first be "normalized" and escaped before further processing
