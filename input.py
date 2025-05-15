@@ -1,12 +1,15 @@
 # Packages
+import json
 import locale
 import re
 # Constants
 from constants import C 
 
-additional_contribution_amount = 0
-additional_contribution_frequency = 'monthly'
-debts = [] # loan_amount, interest_rate, term_length, current_balance
+state = dict(
+    additional_contribution_amount = "0",
+    additional_contribution_frequency = "monthly",
+    debts = [], # loan_amount, interest_rate, term_length, current_balance
+)
 
 def collect_additional_contribution_information(testing = False):
     print()
@@ -22,7 +25,7 @@ def collect_additional_contribution_information(testing = False):
         testing = testing
     )
 
-    return additional_contribution_frequency, additional_contribution_amount
+    return additional_contribution_amount, additional_contribution_frequency
 
 def collect_debt_information():
     print()
@@ -33,9 +36,9 @@ def collect_debt_information():
 
     return current_balance, interest_rate, loan_amount, term_length
 
-def confirm_additional_contribution_information(frequency, amount, testing = False):
+def confirm_additional_contribution_information(amount, frequency, testing = False):
     print()
-    display_additional_contribution_information((frequency, amount))
+    display_additional_contribution_information((amount, frequency))
     print("---------------------------------------")
     print("Does this information look correct?")
     print("---------------------------------------")
@@ -100,9 +103,14 @@ def collect_input(type, prompt = "", testing = False):
         return user_input_normalized 
 
 def display_additional_contribution_information(additional_contribution_information):
+    print()
+    print()
+    print()
+    print("Here is the additional contribution information we collected:\n")
+    print("---------------------------------------")
     print("Here is the information you entered:\n")
-    print(f"Frequency: {additional_contribution_information[0]}")
-    print(f"Amount: ${format_currency(additional_contribution_information[1])}")
+    print(f"Frequency: {additional_contribution_information[1]}")
+    print(f"Amount: ${format_currency(additional_contribution_information[0])}")
 
 def display_debt_information(debt_information):
     print("Here is the information you entered:\n")
@@ -111,7 +119,7 @@ def display_debt_information(debt_information):
     print(f"Original loan amount: ${format_currency(debt_information[2])}")
     print(f"Term length: {debt_information[3]} months")
 
-def format_currency(string, include_sign = False):
+def format_currency(string, include_sign = True):
     locale.setlocale(locale.LC_ALL, '')
     return locale.currency(float(string), symbol = include_sign, grouping = True)
 
@@ -154,11 +162,6 @@ def step_collect_additional_contribution():
         user_confirmation = confirm_additional_contribution_information(*additional_contribution_information)
 
         if user_confirmation:
-            print()
-            print()
-            print()
-            print("Here is the debt information we collected:\n")
-            print("---------------------------------------")
             display_additional_contribution_information(additional_contribution_information)
 
             return additional_contribution_information
@@ -238,12 +241,26 @@ def validate_input(type, user_input_normalized, options):
         valid = validate_input_numerical(user_input_normalized)
 
     return valid
+
+def write_to_tmp_file(data):
+    directory = "tmp"
+    filename = "pds.json"
+    f = open(f"/{directory}/{filename}", 'w', encoding = "utf-8")
+
+    json.dump(data, f)
+
+    f.close()
     
 def main():
     introduce_user_to_process()
 
     debts = step_collect_debts() 
     additional_contribution = step_collect_additional_contribution()
+
+    print(additional_contribution)
+    state["additional_contribution_amount"] = additional_contribution[0]
+    state["additional_contribution_frequency"] = additional_contribution[1]
+    write_to_tmp_file(state)
 
     print(debts)
     print(additional_contribution)
