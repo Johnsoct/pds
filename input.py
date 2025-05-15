@@ -5,11 +5,11 @@ import re
 # Constants
 from constants import C 
 
-state = dict(
-    additional_contribution_amount = "0",
-    additional_contribution_frequency = "monthly",
-    debts = [], # loan_amount, interest_rate, term_length, current_balance
-)
+state = {
+    "additional_contribution_amount": "0",
+    "additional_contribution_frequency": "monthly",
+    "debts": [], # loan_amount, interest_rate, term_length, current_balance
+}
 
 def collect_additional_contribution_information(testing = False):
     print()
@@ -242,10 +242,8 @@ def validate_input(type, user_input_normalized, options):
 
     return valid
 
-def write_to_tmp_file(data):
-    directory = "tmp"
-    filename = "pds.json"
-    f = open(f"/{directory}/{filename}", 'w', encoding = "utf-8")
+def write_to_tmp_file(data, directory = "/tmp", filename = "pds.json"):
+    f = open(f"{directory}/{filename}", 'w', encoding = "utf-8")
 
     json.dump(data, f)
 
@@ -257,10 +255,10 @@ def main():
     debts = step_collect_debts() 
     additional_contribution = step_collect_additional_contribution()
 
-    print(additional_contribution)
     state["additional_contribution_amount"] = additional_contribution[0]
     state["additional_contribution_frequency"] = additional_contribution[1]
-    write_to_tmp_file(state)
+    state["debts"] = debts
+    write_to_tmp_file(state, "/home/taylor/dev/pds")
 
     print(debts)
     print(additional_contribution)
