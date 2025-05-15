@@ -1,4 +1,6 @@
 # Packages
+import json
+from _pytest.config.argparsing import FILE_OR_DIR
 import pytest
 import sys
 # Modules
@@ -6,21 +8,120 @@ from input import *
 # Constants
 from constants import C 
 
+class TestInputUtilities:
+    def test_format_currency(self):
+        passing_tests = (
+                [100, False, "100.00"],
+                [100.00, False, "100.00"],
+                [1200, False, "1,200.00"],
+                [100.5, False, "100.50"],
+                [100, True, "$100.00"],
+                [100.00, True, "$100.00"],
+                [1200, True, "$1,200.00"],
+                [100.5, True, "$100.50"],
+        )
+
+        for test in passing_tests:
+            assert format_currency(test[0], test[1]) == test[2]
+
+    def test_get_options(self):
+        assert get_options("confirmation") == C.CONFIRMATIONS
+        assert get_options("frequency") == C.FREQUENCIES
+        assert get_options("unknown") == []
+
+    def test_is_float_positive(self):
+        failing_tests = [-0.1, -2]
+        passing_tests = [0.0, 1, 12.23]
+
+        for test in failing_tests:
+            assert not is_float_positive(test)
+
+        for test in passing_tests:
+            assert is_float_positive(test)
+
+    def test_strip_dangerous_characters_from_str(self):
+        failing_tests = [
+            0, 0.1, 0.01, 1, 1.1, 1.11, 11, 11.1, 11111.00, 1000000,
+            { "a": 3 }, [1, 2, 3], (1, 2),
+        ]
+        passing_tests = [
+            ("0", "0"),
+			("0.1", "0.1"),
+			("0.01", "0.01"),
+			("1", "1"),
+			("1.1", "1.1"),
+			("1.11", "1.11"),
+			("11", "11"),
+			("11.1", "11.1"),
+			("11,111.00", "11111.00"),
+			("1,000,000", "1000000"),
+			("$1.00", "1.00"),
+			("$1", "1"),
+            (";1", "1"),
+            ("&&1", "1"),
+            ("||1", "1"),
+            ("|1", "1"),
+            ("(1", "1"),
+            (")1", "1"),
+            ("`1", "1"),
+            (">1", "1"),
+            (">>1", "1"),
+            ("<1", "1"),
+            ("*1", "1"),
+            ("?1", "1"),
+            ("~1", "1"),
+            ("$1", "1"),
+            (",1", "1"),
+            ("%1", "1"),
+        ]
+
+        for test in failing_tests:
+            with pytest.raises(TypeError):
+                strip_dangerous_characters_from_user_input(
+                    C.get_disallowed_dangerous_characters_regex(),
+                    test
+                )
+
+        for test in passing_tests:
+            assert test[1] == strip_dangerous_characters_from_user_input(
+                C.get_disallowed_dangerous_characters_regex(),
+                test[0]
+            )
+
+    def test_write_to_tmp_file(self):
+        data = dict(
+            additional_contribution_amount = "$100.00",
+            additional_contribution_frequency = "monthly",
+            debts = [
+                ["100", "4", "1000", "36"],
+            ],
+        )
+        directory = "./"
+        filename = "test_pds.json"
+        
+        write_to_tmp_file(data, directory = directory, filename = filename)
+
+        f = open(f"{directory}/{filename}", "r")
+    
+        assert json.load(f) == data
+
+        f.close()
+
 class TestValidateInput:
     def test_collect_additional_contribution_information(self, capsys, monkeypatch):
         failing_tests = [
-            ("bimonthly", "100"),
-            ("biweekly", "100"),
-            ("monthly", "abc"),
-            ("weekly", "abc"),
+            ("100", "bimonthly"),
+            ("100", "biweekly"),
+            ("abc", "monthly"),
+            ("abc", "weekly"),
         ]
         passing_tests = [(frequency, "100") for frequency in C.FREQUENCIES]
         recursively_passing_tests = [
-            [("bimonthly", "bi-monthly"), ("abc", "100")],
-            [("biweekly", "bi-weekly"), ("abc", "100")],
-            [("month", "monthly"), ("abc", "100")],
-            [("week", "weekly"), ("abc", "100")],
-            [("year", "yearly"), ("abc", "100")],
+            [("abc", "100"), ("bimonthly", "bi-monthly")],
+            [("abc", "100"), ("biweekly", "bi-weekly")],
+            [("abc", "100"), ("month", "monthly")],
+            [("abc", "100"), ("week", "weekly")],
+            [("abc", "100"), ("year", "yearly")],
         ]
 
         for test in failing_tests:
@@ -40,10 +141,10 @@ class TestValidateInput:
 
             monkeypatch.setattr("builtins.input", lambda _: next(tests))
 
-            assert collect_additional_contribution_information() == (test[0], test[1])
+            assert collect_additional_contribution_information() == (test[1], test[0])
 
         for test in recursively_passing_tests:
-            tests = iter([*test[0], *test[1]])
+            tests = iter([*test[1], *test[0]])
 
             monkeypatch.setattr("builtins.input", lambda _: next(tests))
 
@@ -162,7 +263,7 @@ class TestValidateInput:
                 assert not confirm_additional_debt_intent()
 
     def test_confirm_additional_contribution_information(self, capsys, monkeypatch):
-        additional_contribution_information = ("monthly", "100.00")
+        additional_contribution_information = ("100.00", "monthly")
         passing_tests = [*C.CONFIRMATIONS]
 
         for test in passing_tests:
@@ -171,7 +272,7 @@ class TestValidateInput:
             confirm_additional_contribution_information(*additional_contribution_information)
             
             # Prepare the stdout messages to assert against
-            confirm_additional_contribution_information_stdout = f"Frequency: {additional_contribution_information[0]}\nAmount: ${format_currency(additional_contribution_information[1])}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"           
+            confirm_additional_contribution_information_stdout = f"Frequency: {additional_contribution_information[1]}\nAmount: ${format_currency(additional_contribution_information[0])}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"           
             test_stdout = capsys.readouterr().out
             
             assert f"{confirm_additional_contribution_information_stdout}" in f"{test_stdout}"
@@ -202,26 +303,6 @@ class TestValidateInput:
             else:
                 assert not confirm_additional_debt_intent()
 
-    def test_format_currency(self):
-        passing_tests = (
-                [100, False, "100.00"],
-                [100.00, False, "100.00"],
-                [1200, False, "1,200.00"],
-                [100.5, False, "100.50"],
-                [100, True, "$100.00"],
-                [100.00, True, "$100.00"],
-                [1200, True, "$1,200.00"],
-                [100.5, True, "$100.50"],
-        )
-
-        for test in passing_tests:
-            assert format_currency(test[0], test[1]) == test[2]
-
-    def test_get_options(self):
-        assert get_options("confirmation") == C.CONFIRMATIONS
-        assert get_options("frequency") == C.FREQUENCIES
-        assert get_options("unknown") == []
-
     def test_get_user_confirmation_comparison(self):
         false_tests = ["n", "N", "no", "NO", "No"]
         true_tests = ["y", "Y", "yes", "YES", "Yes"]
@@ -235,16 +316,6 @@ class TestValidateInput:
             assert get_user_confirmation_comparison(
                 normalize_user_input(test, C.get_disallowed_dangerous_characters_regex())
             )
-
-    def test_is_float_positive(self):
-        failing_tests = [-0.1, -2]
-        passing_tests = [0.0, 1, 12.23]
-
-        for test in failing_tests:
-            assert not is_float_positive(test)
-
-        for test in passing_tests:
-            assert is_float_positive(test)
 
     def test_normalize_user_input(self):
         passing_tests = [
@@ -263,55 +334,6 @@ class TestValidateInput:
                 test[1], 
                 C.get_disallowed_dangerous_characters_regex()
             ) == test[2]
-
-    def test_strip_dangerous_characters_from_str(self):
-        failing_tests = [
-            0, 0.1, 0.01, 1, 1.1, 1.11, 11, 11.1, 11111.00, 1000000,
-            { "a": 3 }, [1, 2, 3], (1, 2),
-        ]
-        passing_tests = [
-            ("0", "0"),
-			("0.1", "0.1"),
-			("0.01", "0.01"),
-			("1", "1"),
-			("1.1", "1.1"),
-			("1.11", "1.11"),
-			("11", "11"),
-			("11.1", "11.1"),
-			("11,111.00", "11111.00"),
-			("1,000,000", "1000000"),
-			("$1.00", "1.00"),
-			("$1", "1"),
-            (";1", "1"),
-            ("&&1", "1"),
-            ("||1", "1"),
-            ("|1", "1"),
-            ("(1", "1"),
-            (")1", "1"),
-            ("`1", "1"),
-            (">1", "1"),
-            (">>1", "1"),
-            ("<1", "1"),
-            ("*1", "1"),
-            ("?1", "1"),
-            ("~1", "1"),
-            ("$1", "1"),
-            (",1", "1"),
-            ("%1", "1"),
-        ]
-
-        for test in failing_tests:
-            with pytest.raises(TypeError):
-                strip_dangerous_characters_from_user_input(
-                    C.get_disallowed_dangerous_characters_regex(),
-                    test
-                )
-
-        for test in passing_tests:
-            assert test[1] == strip_dangerous_characters_from_user_input(
-                C.get_disallowed_dangerous_characters_regex(),
-                test[0]
-            )
 
     def test_validate_input(self):
         failling_tests = [
