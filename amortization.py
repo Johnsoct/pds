@@ -1,4 +1,5 @@
 # Packages
+from tabulate import tabulate
 import math
 
 def calculate_monthly_payment(original_loan_amount, interest, term_length_in_months):
@@ -13,6 +14,23 @@ def calculate_monthly_payment(original_loan_amount, interest, term_length_in_mon
 
     return f"{original_loan_amount * (formula_top / formula_bottom):.2f}"
 
+def calculate_monthly_contribution(monthly_payment, current_loan_amount, interest):
+    amount_to_interest = current_loan_amount * (interest / 12)
+    amount_to_principle = float(monthly_payment) - amount_to_interest
+
+    return f"{amount_to_principle:.2f}", f"{amount_to_interest:.2f}"
+
+def display_amortization_schedule():
+    data = [] # (monthly payment, interest due, principle due, new balance)
+
+    # TODO: iterate through each month of all debts from the smallest to the largest current debt balance, add values to data as tuple
+
+    print(tabulate(
+        data, 
+        headers = ["monthly payment", "interest due", "principle due", "new balance"],
+        showindex = "always",
+        tablefmt = "github",
+    ))
 
 def main(debts_and_additional_contributions):
     print(debts_and_additional_contributions)
