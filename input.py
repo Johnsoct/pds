@@ -7,8 +7,8 @@ from constants import C
 
 state = {
     "additional_contribution_amount": "0",
-    "additional_contribution_frequency": "monthly",
-    "debts": [], # loan_amount, interest_rate, term_length, current_balance
+    "additional_contribution_frequency": "never",
+    "debts": [], #  current_balance, interest_rate, original_loan_amount, term_length
 }
 
 def collect_additional_contribution_information(testing = False):
@@ -173,7 +173,7 @@ def step_collect_additional_contribution():
         print()
         print("Skipping additional contributions...")
         
-        return None
+        return None 
 
 def step_collect_debts():
     debts = []
@@ -255,9 +255,10 @@ def main():
     debts = step_collect_debts() 
     additional_contribution = step_collect_additional_contribution()
 
-    state["additional_contribution_amount"] = additional_contribution[0]
-    state["additional_contribution_frequency"] = additional_contribution[1]
     state["debts"] = debts
+    if additional_contribution:
+        state["additional_contribution_amount"] = additional_contribution[0]
+        state["additional_contribution_frequency"] = additional_contribution[1]
 
     write_to_tmp_file(state, "/home/taylor/dev/pds")
 
