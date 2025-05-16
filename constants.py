@@ -6,7 +6,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Constants:
     CONFIRMATIONS: tuple[str, ...] = ("y", "yes", "n", "no")
-    FREQUENCIES: tuple[str, ...] = ("bi-monthly", "bi-weekly", "monthly", "weekly", "yearly")
+    FREQUENCIES: tuple[str, ...] = ("never", "bi-monthly", "bi-weekly", "monthly", "weekly", "yearly")
     DISALLOWED_DANGEROUS_CHARACTERS: tuple[str, ...] = (";", "&&", "||", "|", "(", ")", "`", ">", ">>", "<", "*", "?", "~", "$", ",", "%")
 
     def get_disallowed_dangerous_characters_regex(self):
