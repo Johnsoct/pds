@@ -25,6 +25,7 @@ n = Number of payments (term length in months)
 * By creating a pipeline for all input processes to follow, the functions I write to perform small actions along the pipeline RELY on having arguments which have been subject to other processes, such as how `get_user_confirmation_comparison` relies on `user_input_confirmation` (it's argument) to have been normalized through `collect_input`.
     * Without typing, I really don't like this, but with typing, this problem wouldn't be an issue at all, IMO.
 * I really don't like how ambiguous tuples are (including returning multiple values from a function) because when you access values within a tuple, it's not clear what you're accessing, and the index actually matters
+* types are awesome... always use them... sigh
 
 ## Steps
 
