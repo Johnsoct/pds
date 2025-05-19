@@ -47,10 +47,10 @@ def calculate_amortization_schedule(debts_and_additional_contributions):
         return schedule
 
 def calculate_monthly_contribution(monthly_payment, current_loan_amount, interest):
-    amount_to_interest = Decimal(current_loan_amount * (interest / 12)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    amount_to_interest = Decimal(current_loan_amount * (interest / 12))
     amount_to_principle = Decimal(monthly_payment) - amount_to_interest
 
-    return f"{amount_to_principle:.2f}", f"{amount_to_interest:.2f}"
+    return amount_to_principle, amount_to_interest
 
 def calculate_monthly_payment(original_loan_amount, interest, term_length_in_months):
     # Total payment = Loan amount x ((i * (1 + i)^n) / ((i + 1)^n -1))
@@ -58,20 +58,20 @@ def calculate_monthly_payment(original_loan_amount, interest, term_length_in_mon
     # i = Monthly interest payment (interest rate / 12 months)
     # n = Number of payments (term length in months)
 
-    interest_monthly = interest / 12
-    formula_bottom = math.pow(interest_monthly + 1, term_length_in_months) - 1
-    formula_top = interest_monthly * math.pow(1 + interest_monthly, term_length_in_months)
+    interest_monthly = interest / Decimal(12)
+    formula_bottom = Decimal(math.pow(interest_monthly + 1, term_length_in_months) - 1)
+    formula_top = interest_monthly * Decimal(math.pow(1 + interest_monthly, term_length_in_months))
 
-    return f"{original_loan_amount * (formula_top / formula_bottom):.2f}"
+    return original_loan_amount * (formula_top / formula_bottom)
 
 def calculate_new_balance(
     original_balance,
     monthly_principle,
-    additional_contribution_amount = 0.0,
+    additional_contribution_amount = Decimal(0.0),
     current_index = 0,
     terms_until_additional_contributions = 0,
 ):
-    new_balance = original_balance - float(monthly_principle)
+    new_balance = original_balance - monthly_principle
 
     if additional_contribution_amount > 0 and current_index >= terms_until_additional_contributions:
         new_balance -= additional_contribution_amount

@@ -150,7 +150,7 @@ def get_user_confirmation_comparison(user_input_confirmation):
     else:
         return False
 
-def introduce_ser_to_process():
+def introduce_user_to_process():
     print("I'm going to ask you a series of questions about your debts and any additional contributions you want to make towards your monthly debt. Each debt will require the original loan amount, interest rate, term length, and the current balance.")
     print("")
     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325\n")

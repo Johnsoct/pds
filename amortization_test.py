@@ -1,4 +1,5 @@
 # Packages
+from decimal import Decimal, ROUND_HALF_UP
 import pytest
 # Modules
 from amortization import *
@@ -12,7 +13,7 @@ class TestAmortization:
                     "additional_contribution_amount": 0,
                     "additional_contribution_frequency": "monthly",
                     "debts": [
-                        (100, .1, 12, 1000),
+                        (Decimal(100), Decimal(.1), Decimal(12), Decimal(1000)),
                     ],
                 },
                 # Output
@@ -42,38 +43,38 @@ class TestAmortization:
 
     def test_calculate_monthly_payment(self):
         passing_tests = [
-            (30000, .03, 48, "664.03"),
-            (1000, .1, 12, "87.92"),
+            { "parameters": (30000, .03, 48), "results": 664.03 },
+            { "parameters": (1000, .1, 12), "results": 87.92 },
         ]
 
         for test in passing_tests:
-            assert calculate_monthly_payment(test[0], test[1], test[2]) == test[3]
+            assert calculate_monthly_payment(*[Decimal(x) for x in test["parameters"]]) == Decimal(test["results"])
 
     def test_calculate_monthly_contribution(self):
         monthly_payment = calculate_monthly_payment(30000, .03, 48)
         passing_tests = [
             {
                 "parameters": [monthly_payment, 30000, .03],
-                "result": ["589.03", "75.00"],
+                "result": [589.03, 75.00],
             },
             {
                 "parameters": [monthly_payment, 29410.97, .03],
-                "result": ["590.50", "73.53"],
+                "result": [590.50, 73.53],
             },
             {
                 "parameters": [monthly_payment, 28820.47, .03],
-                "result": ["591.98", "72.05"],
+                "result": [591.98, 72.05],
             },
             {
                 "parameters": [87.92, 1000, .1],
-                "result": ["79.58", "8.33"],
+                "result": [79.58, 8.33],
             },
         ]
 
         for test in passing_tests:
-            params = test["parameters"]
-            results = test["result"]
-            assert calculate_monthly_contribution(params[0], params[1], params[2]) == (results[0], results[1])
+            params = [Decimal(x) for x in test["parameters"]]
+            results = [Decimal(x) for x in test["result"]]
+            assert calculate_monthly_contribution(*params) == (results[0], results[1])
 
     def test_calculate_new_balance(self):
         passing_tests = [
@@ -97,7 +98,7 @@ class TestAmortization:
         ]
 
         for test in passing_tests:
-            assert calculate_new_balance(*test["params"]) == test["result"]
+            assert calculate_new_balance(*[Decimal(x) for x in test["params"][:3]], *test["params"][3:]) == Decimal(test["result"])
 
     def test_sort_debts(self):
         passing_tests = [
@@ -105,18 +106,18 @@ class TestAmortization:
                 "additional_contribution_amount": 100,
                 "additional_contribution_frequency": "monthly",
                 "debts": [
-                    ("12453.99", "12.4", "14523.45", "72", ),
-                    ("500.00", "4.5", "1000.00", "60"),
+                    [Decimal(x) for x in (12453.99, 12.4, 14523.45, 72)],
+                    [Decimal(x) for x in (500.00, 4.5, 1000.00, 60)],
                 ],
             },
             {
                 "additional_contribution_amount": 100,
                 "additional_contribution_frequency": "monthly",
                 "debts": [
-                    ("7200.00", "8.99", "14000.00", "72"),
-                    ("77500.00", "3.4", "134000.00", "84"),
-                    ("6500.00", "2.41", "14000.00", "72"),
-                    ("18000.00", "8.4", "24000.00", "72"),
+                    [Decimal(x) for x in (7200.00, 8.99, 14000.00, 72)],
+                    [Decimal(x) for x in (77500.00, 3.4, 134000.00, 84)],
+                    [Decimal(x) for x in (6500.00, 2.41, 14000.00, 72)],
+                    [Decimal(x) for x in (18000.00, 8.4, 24000.00, 72)],
                 ],
             }
         ]
