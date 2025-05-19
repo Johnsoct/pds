@@ -1,5 +1,4 @@
 # Packages
-from decimal import * 
 import json
 import locale
 import re
@@ -12,9 +11,9 @@ state = {
     "debts": [], #  current_balance, interest_rate, original_loan_amount, term_length
 }
 
-def cast_to_decimal(string):
+def cast_to_float(string):
     try:
-        return Decimal(string)
+        return float(string)
     except:
         print(f"{string!r} could not be converted to a float")
         return None
@@ -97,7 +96,6 @@ def collect_input(type, prompt = "", testing = False):
     options = get_options(type)
     user_input = input(prompt)
     user_input_normalized = normalize_user_input(
-        type,
         user_input,
         C.get_disallowed_dangerous_characters_regex()
     )
@@ -128,10 +126,9 @@ def display_debt_information(debt_information):
     print(f"Original loan amount: {format_currency(debt_information[2])}")
     print(f"Term length: {debt_information[3]} months")
 
-def format_currency(value):
-    rounded_decimal = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+def format_currency(decimal, include_sign = True):
     locale.setlocale(locale.LC_ALL, '')
-    return locale.currency(float(rounded_decimal), symbol = True, grouping = True)
+    return locale.currency(decimal, symbol = include_sign, grouping = True)
 
 def get_options(type):
     if type == "frequency":
@@ -150,19 +147,15 @@ def get_user_confirmation_comparison(user_input_confirmation):
     else:
         return False
 
-def introduce_ser_to_process():
+def introduce_user_to_process():
     print("I'm going to ask you a series of questions about your debts and any additional contributions you want to make towards your monthly debt. Each debt will require the original loan amount, interest rate, term length, and the current balance.")
     print("")
     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325\n")
 
-def is_decimal_positive(decimal):
-    print(decimal)
-    return not Decimal.is_signed(decimal)
+def is_float_positive(float):
+    return float >= 0
 
-def normalize_user_input(type, input, replace_pattern):
-    if not isinstance(input, str):
-        raise TypeError
-
+def normalize_user_input(input, replace_pattern):
     input_mutated = input.lower()
 
     # 1. Strip of dangerous characters
@@ -170,7 +163,7 @@ def normalize_user_input(type, input, replace_pattern):
 
     # 2. Cast to appropriate type, if necessary
     if type == "numerical":
-        input_mutated = cast_to_decimal(input_mutated)
+        input_mutated = cast_to_float(input_mutated)
 
     return input_mutated
 
@@ -241,11 +234,11 @@ def validate_input_option_in_options(input, options):
     else:
         return False
 
-def validate_input_numerical(decimal):
-    if is_decimal_positive(decimal):
+def validate_input_numerical(flt):
+    if is_float_positive(flt):
         return True
     else:
-        print(f"{float(decimal)!r} was negative")
+        print(f"{float(flt)!r} was negative")
         return False
 
 def validate_input(type, user_input_normalized, options):
@@ -253,7 +246,7 @@ def validate_input(type, user_input_normalized, options):
 
     if user_input_normalized == None:
         valid = False
-    elif type in ["confirmation", "frequency"]:
+    if type in ["confirmation", "frequency"]:
         valid = validate_input_option_in_options(user_input_normalized, options)
     elif type == "numerical":
         valid = validate_input_numerical(user_input_normalized)

@@ -1,4 +1,5 @@
 # Packages
+from decimal import Decimal, ROUND_HALF_UP
 import json
 from _pytest.config.argparsing import FILE_OR_DIR
 import pytest
@@ -10,34 +11,30 @@ from constants import C
 
 class TestInputUtilities:
     def test_format_currency(self):
-        passing_tests = (
-                [100, False, "100.00"],
-                [100.00, False, "100.00"],
-                [1200, False, "1,200.00"],
-                [100.5, False, "100.50"],
-                [100, True, "$100.00"],
-                [100.00, True, "$100.00"],
-                [1200, True, "$1,200.00"],
-                [100.5, True, "$100.50"],
-        )
+        passing_tests = [
+            { "parameter": Decimal(100), "result": "$100.00" },
+            { "parameter": Decimal(100.00), "result": "$100.00" },
+            { "parameter": Decimal(1200), "result": "$1,200.00" },
+            { "parameter": Decimal(100.5), "result": "$100.50" },
+        ]
 
         for test in passing_tests:
-            assert format_currency(test[0], test[1]) == test[2]
+            assert format_currency(test["parameter"]) == test["result"]
 
     def test_get_options(self):
         assert get_options("confirmation") == C.CONFIRMATIONS
         assert get_options("frequency") == C.FREQUENCIES
         assert get_options("unknown") == []
 
-    def test_is_float_positive(self):
+    def test_is_decimal_positive(self):
         failing_tests = [-0.1, -2]
         passing_tests = [0.0, 1, 12.23]
 
         for test in failing_tests:
-            assert not is_float_positive(test)
+            assert not is_decimal_positive(Decimal(test))
 
         for test in passing_tests:
-            assert is_float_positive(test)
+            assert is_decimal_positive(Decimal(test))
 
     def test_strip_dangerous_characters_from_str(self):
         failing_tests = [
@@ -141,14 +138,14 @@ class TestValidateInput:
 
             monkeypatch.setattr("builtins.input", lambda _: next(tests))
 
-            assert collect_additional_contribution_information() == (test[1], test[0])
+            assert collect_additional_contribution_information() == (Decimal(test[1]), test[0])
 
         for test in recursively_passing_tests:
             tests = iter([*test[1], *test[0]])
 
             monkeypatch.setattr("builtins.input", lambda _: next(tests))
 
-            assert collect_additional_contribution_information() == (test[0][1], test[1][1])
+            assert collect_additional_contribution_information() == (Decimal(test[0][1]), test[1][1])
 
     def test_collect_input(self, capsys, monkeypatch):
         failing_tests = [
@@ -199,6 +196,7 @@ class TestValidateInput:
             normalized_user_input = collect_input(test[0], test[1])
 
             assert normalized_user_input == normalize_user_input(
+                test[0],
                 test[2],
                 C.get_disallowed_dangerous_characters_regex()
             )
@@ -210,6 +208,7 @@ class TestValidateInput:
 
             collect_input_output = collect_input(test[0], test[1])
             normalized_user_input = normalize_user_input(
+                test[0],
                 test[2][1],
                 C.get_disallowed_dangerous_characters_regex(),
             )
@@ -263,7 +262,7 @@ class TestValidateInput:
                 assert not confirm_additional_debt_intent()
 
     def test_confirm_additional_contribution_information(self, capsys, monkeypatch):
-        additional_contribution_information = ("100.00", "monthly")
+        additional_contribution_information = (Decimal(100.00), "monthly")
         passing_tests = [*C.CONFIRMATIONS]
 
         for test in passing_tests:
@@ -272,7 +271,9 @@ class TestValidateInput:
             confirm_additional_contribution_information(*additional_contribution_information)
             
             # Prepare the stdout messages to assert against
-            confirm_additional_contribution_information_stdout = f"Frequency: {additional_contribution_information[1]}\nAmount: {format_currency(additional_contribution_information[0])}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"           
+            amount = format_currency(additional_contribution_information[0])
+            frequency = additional_contribution_information[1]
+            confirm_additional_contribution_information_stdout = f"Frequency: {frequency}\nAmount: {amount}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"           
             test_stdout = capsys.readouterr().out
             
             assert f"{confirm_additional_contribution_information_stdout}" in f"{test_stdout}"
@@ -284,16 +285,18 @@ class TestValidateInput:
                 assert not confirm_additional_contribution_information(*additional_contribution_information)
 
     def test_confirm_debt_information(self, capsys, monkeypatch):
-        debt_information = ("10000.00", "12.5", "32000", "72")
+        debt_information = list(map(Decimal, [100000, 12.5, 32000, 72]))
         passing_tests = [*C.CONFIRMATIONS]
 
         for test in passing_tests:
             monkeypatch.setattr("builtins.input", lambda _: test)
 
-            confirm_debt_information(*debt_information)
+            confirm_debt_information(*debt_information, testing = False)
             
             # Prepare the stdout messages to assert against
-            confirm_debt_information_stdout = f"Current balance: {format_currency(debt_information[0])}\nInterest rate: {debt_information[1]}%\nOriginal loan amount: {format_currency(debt_information[2])}\nTerm length: {debt_information[3]} months\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to adding additional debts, if any.\n"           
+            balance = format_currency(Decimal(debt_information[0]))
+            loan_amount = format_currency(Decimal(debt_information[2]))
+            confirm_debt_information_stdout = f"Current balance: {balance}\nInterest rate: {debt_information[1]}%\nOriginal loan amount: {loan_amount}\nTerm length: {debt_information[3]} months\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to adding additional debts, if any.\n"           
             test_stdout = capsys.readouterr().out
             
             assert f"{confirm_debt_information_stdout}" in f"{test_stdout}"
@@ -309,28 +312,49 @@ class TestValidateInput:
 
         for test in false_tests:
             assert not get_user_confirmation_comparison(
-                normalize_user_input(test, C.get_disallowed_dangerous_characters_regex())
+                normalize_user_input("confirmation", test, C.get_disallowed_dangerous_characters_regex())
             )
 
         for test in true_tests:
             assert get_user_confirmation_comparison(
-                normalize_user_input(test, C.get_disallowed_dangerous_characters_regex())
+                normalize_user_input("confirmation", test, C.get_disallowed_dangerous_characters_regex())
             )
 
     def test_normalize_user_input(self):
+        failing_tests = [
+            ("numerical", 1, TypeError), # any numbers
+            ("numerical", 1.1, TypeError), # any numbers
+            ("numerical", "1..0", None), # value that can't be cast to decimal
+        ]
         passing_tests = [
             ("frequency", "MONTHLY", "monthly"),
             ("frequency", "Monthly", "monthly"),
             ("frequency", "monthly", "monthly"),
             ("frequency", "Bi-Weekly", "bi-weekly"),
-            ("numerical", "$100", "100"),
-            ("numerical", "$10,000", "10000"),
-            ("numerical", "10%", "10"),
-            ("numerical", "55.5%", "55.5")
+            ("numerical", "$100", Decimal(100)),
+            ("numerical", "$10,000", Decimal(10000)),
+            ("numerical", "10%", Decimal(10)),
+            ("numerical", "55.5%", Decimal(55.5))
         ]
+
+        for test in failing_tests:
+            if test[2] == TypeError:
+                with pytest.raises(TypeError):
+                    assert not normalize_user_input(
+                            test[0],
+                            test[1],
+                            C.get_disallowed_dangerous_characters_regex()
+                    )
+            else:
+                assert normalize_user_input(
+                        test[0],
+                        test[1],
+                        C.get_disallowed_dangerous_characters_regex()
+                ) == test[2]
 
         for test in passing_tests:
             assert normalize_user_input(
+                test[0],
                 test[1], 
                 C.get_disallowed_dangerous_characters_regex()
             ) == test[2]
@@ -384,7 +408,7 @@ class TestValidateInput:
             passing_tests.append(("frequency", frequency))
 
         for test in failling_tests:
-            normalized_user_input = normalize_user_input(test[1], C.get_disallowed_dangerous_characters_regex())
+            normalized_user_input = normalize_user_input(test[0], test[1], C.get_disallowed_dangerous_characters_regex())
             pattern = None
 
             if test[0] == "frequency":
@@ -395,7 +419,7 @@ class TestValidateInput:
             assert not validate_input(test[0], normalized_user_input, pattern)
 
         for test in passing_tests:
-            normalized_user_input = normalize_user_input(test[1], C.get_disallowed_dangerous_characters_regex())
+            normalized_user_input = normalize_user_input(test[0], test[1], C.get_disallowed_dangerous_characters_regex())
             pattern = None
 
             if test[0] == "frequency":
@@ -416,14 +440,14 @@ class TestValidateInput:
             assert validate_input_option_in_options(test, C.CONFIRMATIONS)
 
     def test_validate_input_numerical(self):
-        failing_tests = ["a", "!", "$", ".", ",", "%", "11,111.00", "1,000,000", "$1.00", "$1", "-12"]
+        failing_tests = [ -0.1, -1, "-1000" ]
         passing_tests = [
             0, 0.1, 0.01, 1, 1.1, 1.11, 11, 11.1, 11111.00, 1000000,
             "0", "0.1", "0.01", "1", "1.1", "1.11", "11", "11.1"
         ]
 
         for test in failing_tests:
-            assert not validate_input_numerical(test)
+            assert not validate_input_numerical(Decimal(test))
 
         for test in passing_tests:
-            assert validate_input_numerical(test)
+            assert validate_input_numerical(Decimal(test))
