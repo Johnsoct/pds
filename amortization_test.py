@@ -13,7 +13,7 @@ class TestAmortization:
                     "additional_contribution_amount": 0,
                     "additional_contribution_frequency": "monthly",
                     "debts": [
-                        (Decimal(100), Decimal(.1), Decimal(12), Decimal(1000)),
+                        [Decimal(x) for x in (1000, .1, 12, 1000)],
                     ],
                 },
                 # Output
@@ -43,15 +43,27 @@ class TestAmortization:
 
     def test_calculate_monthly_payment(self):
         passing_tests = [
-            { "parameters": (30000, .03, 48), "results": 664.03 },
-            { "parameters": (1000, .1, 12), "results": 87.92 },
+            { 
+                "parameters": (30000, .03, 48),
+                "results": 664.03
+            },
+            {
+                "parameters": (1000, .1, 12),
+                "results": 87.92
+            },
         ]
 
         for test in passing_tests:
-            assert calculate_monthly_payment(*[Decimal(x) for x in test["parameters"]]) == Decimal(test["results"])
+            # NOTE: calculate_monthly_contribution expects decimal parameters
+            params = [Decimal(x) for x in test["parameters"]]
+            result = Decimal(test["results"])
+
+            # NOTE: need to round for the test since Decimal(x) is so accurate:
+            # Example - Test #1 - Decimal(589.03) != calculate_monthly_contribution[0] (a.k.a. `amount_to_principle`)
+            assert display_currency(calculate_monthly_payment(*params)) == display_currency(result)
 
     def test_calculate_monthly_contribution(self):
-        monthly_payment = calculate_monthly_payment(30000, .03, 48)
+        monthly_payment = calculate_monthly_payment(*[Decimal(x) for x in (30000, .03, 48)])
         passing_tests = [
             {
                 "parameters": [monthly_payment, 30000, .03],
@@ -66,15 +78,25 @@ class TestAmortization:
                 "result": [591.98, 72.05],
             },
             {
-                "parameters": [87.92, 1000, .1],
+                "parameters": [
+                    calculate_monthly_payment(*[Decimal(x) for x in [1000, .1, 12]]),
+                    1000,
+                    .1,
+                ],
                 "result": [79.58, 8.33],
             },
         ]
 
         for test in passing_tests:
+            # NOTE: calculate_monthly_contribution expects decimal parameters
             params = [Decimal(x) for x in test["parameters"]]
-            results = [Decimal(x) for x in test["result"]]
-            assert calculate_monthly_contribution(*params) == (results[0], results[1])
+
+            # NOTE: need to round for the test since Decimal(x) is so accurate:
+            # Example - Test #1 - Decimal(589.03) != calculate_monthly_contribution[0] (a.k.a. `amount_to_principle`)
+            results = [display_currency(Decimal(x)) for x in test["result"]]
+
+            # NOTE: calculate_monthly_contribution returns a tuple
+            assert tuple(display_currency(x) for x in calculate_monthly_contribution(*params)) == (results[0], results[1])
 
     def test_calculate_new_balance(self):
         passing_tests = [
