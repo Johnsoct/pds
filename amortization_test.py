@@ -2,7 +2,7 @@
 from decimal import Decimal, ROUND_HALF_UP
 import pytest
 # Modules
-from amortization import *
+from amortization import Amortization
 
 class TestAmortization:
     def test_calculate_amortization_schedule(self):
@@ -39,7 +39,7 @@ class TestAmortization:
         ]
 
         for test in passing_tests:
-            assert calculate_amortization_schedule(test[0]) == test[1]
+            assert Amortization.calculate_amortization_schedule(test[0]) == test[1]
 
     def test_calculate_monthly_payment(self):
         passing_tests = [
@@ -60,10 +60,10 @@ class TestAmortization:
 
             # NOTE: need to round for the test since Decimal(x) is so accurate:
             # Example - Test #1 - Decimal(589.03) != calculate_monthly_contribution[0] (a.k.a. `amount_to_principle`)
-            assert display_currency(calculate_monthly_payment(*params)) == display_currency(result)
+            assert Amortization.display_currency(Amortization.calculate_monthly_payment(*params)) == Amortization.display_currency(result)
 
     def test_calculate_monthly_contribution(self):
-        monthly_payment = calculate_monthly_payment(*[Decimal(x) for x in (30000, .03, 48)])
+        monthly_payment = Amortization.calculate_monthly_payment(*[Decimal(x) for x in (30000, .03, 48)])
         passing_tests = [
             {
                 "parameters": [monthly_payment, 30000, .03],
@@ -93,10 +93,10 @@ class TestAmortization:
 
             # NOTE: need to round for the test since Decimal(x) is so accurate:
             # Example - Test #1 - Decimal(589.03) != calculate_monthly_contribution[0] (a.k.a. `amount_to_principle`)
-            results = [display_currency(Decimal(x)) for x in test["result"]]
+            results = [Amortization.display_currency(Decimal(x)) for x in test["result"]]
 
             # NOTE: calculate_monthly_contribution returns a tuple
-            assert tuple(display_currency(x) for x in calculate_monthly_contribution(*params)) == (results[0], results[1])
+            assert tuple(Amortization.display_currency(x) for x in Amortization.calculate_monthly_contribution(*params)) == (results[0], results[1])
 
     def test_calculate_new_balance(self):
         passing_tests = [
@@ -120,7 +120,7 @@ class TestAmortization:
         ]
 
         for test in passing_tests:
-            assert calculate_new_balance(*[Decimal(x) for x in test["params"][:3]], *test["params"][3:]) == Decimal(test["result"])
+            assert Amortization.calculate_new_balance(*[Decimal(x) for x in test["params"][:3]], *test["params"][3:]) == Decimal(test["result"])
 
     def test_sort_debts(self):
         passing_tests = [
@@ -145,7 +145,7 @@ class TestAmortization:
         ]
 
         for test in passing_tests:
-            ordered_debts = sort_debts(test)
+            ordered_debts = Amortization.sort_debts(test)
 
             for index, debt in enumerate(ordered_debts):
                 if index == len(ordered_debts) - 1:

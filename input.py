@@ -3,8 +3,15 @@ from decimal import *
 import json
 import locale
 import re
+from typing import Literal, NewType
 # Constants
 from constants import C 
+# Types
+type AdditionalContributionAmount = NewType('AdditionalContributionAmount', Decimal)
+type AdditionalContributionFrequency = NewType('AdditionalContributionFrequency', "never" | "bi-monthly" | "bi-weekly" | "monthly" | "weekly" | "yearly")
+type AdditionalContributionInformation = NewType('AdditionalContributionInformation', (AdditionalContributionFrequency, AdditionalContributionAmount))
+type DebtInformation = NewType('DebtInformation', (Decimal, Decimal, Decimal, Decimal))
+type NormalizedUserInput = Literal[str | Decimal]
 
 state = {
     "additional_contribution_amount": "0",
@@ -12,14 +19,14 @@ state = {
     "debts": [], #  current_balance, interest_rate, original_loan_amount, term_length
 }
 
-def cast_to_decimal(string):
+def cast_to_decimal(string: str) -> Decimal:
     try:
         return Decimal(string)
     except:
         print(f"{string!r} could not be converted to a float")
         return None
 
-def collect_additional_contribution_information(testing = False):
+def collect_additional_contribution_information(testing = False) -> (AdditionalContributionFrequency, AdditionalContributionAmount):
     print()
 
     additional_contribution_frequency = collect_input(
@@ -35,7 +42,7 @@ def collect_additional_contribution_information(testing = False):
 
     return additional_contribution_amount, additional_contribution_frequency
 
-def collect_debt_information():
+def collect_debt_information() -> (Decimal, Decimal, Decimal, Decimal):
     print()
     current_balance = collect_input("numerical", "What is the current balance of the loan? ")
     interest_rate = collect_input("numerical", "What is the interest rate of the loan? ")
@@ -44,7 +51,7 @@ def collect_debt_information():
 
     return current_balance, interest_rate, loan_amount, term_length
 
-def confirm_additional_contribution_information(amount, frequency, testing = False):
+def confirm_additional_contribution_information(amount: Decimal, frequency: AdditionalContributionFrequency, testing = False) -> bool:
     print()
     display_additional_contribution_information((amount, frequency))
     print("---------------------------------------")
@@ -57,7 +64,7 @@ def confirm_additional_contribution_information(amount, frequency, testing = Fal
 
     return get_user_confirmation_comparison(user_input_confirmation)
 
-def confirm_additional_contribution_intent(testing = False):
+def confirm_additional_contribution_intent(testing = False) -> bool:
     print()
     print(f"Do you intend to contribute an additional amount towards your debt every {C.FREQUENCIES}")
     print("---------------------------------------")
@@ -69,7 +76,7 @@ def confirm_additional_contribution_intent(testing = False):
 
     return get_user_confirmation_comparison(additional_contribution_confirmation)
 
-def confirm_additional_debt_intent(testing = False):
+def confirm_additional_debt_intent(testing = False) -> bool:
     print()
     print("Would you like to enter another debt?")
     print("---------------------------------------")
@@ -80,7 +87,13 @@ def confirm_additional_debt_intent(testing = False):
 
     return get_user_confirmation_comparison(user_input_confirmation)
 
-def confirm_debt_information(current_balance, interest_rate, loan_amount, term_length, testing = False):
+def confirm_debt_information(
+    current_balance: Decimal,
+    interest_rate: Decimal,
+    loan_amount: Decimal,
+    term_length: Decimal,
+    testing = False,
+) -> bool:
     print()
     display_debt_information((current_balance, interest_rate, loan_amount, term_length))
     print("---------------------------------------")
@@ -93,7 +106,7 @@ def confirm_debt_information(current_balance, interest_rate, loan_amount, term_l
 
     return get_user_confirmation_comparison(user_input_confirmation)
 
-def collect_input(type, prompt = "", testing = False):
+def collect_input(type: str, prompt = "", testing = False) -> NormalizedUserInput:
     options = get_options(type)
     user_input = input(prompt)
     user_input_normalized = normalize_user_input(
@@ -111,7 +124,7 @@ def collect_input(type, prompt = "", testing = False):
     else:
         return user_input_normalized 
 
-def display_additional_contribution_information(additional_contribution_information):
+def display_additional_contribution_information(additional_contribution_information: AdditionalContributionInformation):
     print()
     print()
     print()
@@ -121,19 +134,19 @@ def display_additional_contribution_information(additional_contribution_informat
     print(f"Frequency: {additional_contribution_information[1]}")
     print(f"Amount: {format_currency(additional_contribution_information[0])}")
 
-def display_debt_information(debt_information):
+def display_debt_information(debt_information: DebtInformation):
     print("Here is the information you entered:\n")
     print(f"Current balance: {format_currency(debt_information[0])}")
     print(f"Interest rate: {debt_information[1]}%")
     print(f"Original loan amount: {format_currency(debt_information[2])}")
     print(f"Term length: {debt_information[3]} months")
 
-def format_currency(value):
+def format_currency(value: Decimal) -> str:
     rounded_decimal = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     locale.setlocale(locale.LC_ALL, '')
     return locale.currency(float(rounded_decimal), symbol = True, grouping = True)
 
-def get_options(type):
+def get_options(type: str) -> (str, ...):
     if type == "frequency":
         return C.FREQUENCIES
     elif type == "confirmation":
@@ -141,7 +154,7 @@ def get_options(type):
     else:
         return []
 
-def get_user_confirmation_comparison(user_input_confirmation):
+def get_user_confirmation_comparison(user_input_confirmation: str) -> bool:
     # WARN: do not call this before normalize_user_input() and validate_input()
     # NOTE: I do not want to overcomplicated the C.CONFIRMATIONS value type
     # because validate_input_option_in_options would get unnecessarily complicated
@@ -155,11 +168,11 @@ def introduce_user_to_process():
     print("")
     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325\n")
 
-def is_decimal_positive(decimal):
+def is_decimal_positive(decimal: Decimal) -> bool:
     print(decimal)
     return not Decimal.is_signed(decimal)
 
-def normalize_user_input(type, input, replace_pattern):
+def normalize_user_input(type: str, input: str, replace_pattern: str) -> NormalizedUserInput:
     if not isinstance(input, str):
         raise TypeError
 
@@ -174,7 +187,7 @@ def normalize_user_input(type, input, replace_pattern):
 
     return input_mutated
 
-def step_collect_additional_contribution():
+def step_collect_additional_contribution() -> AdditionalContributionInformation | None:
     additional_contribution_confirmation = confirm_additional_contribution_intent()
 
     if additional_contribution_confirmation:
@@ -195,7 +208,7 @@ def step_collect_additional_contribution():
         
         return None 
 
-def step_collect_debts():
+def step_collect_debts() -> [DebtInformation, ...]:
     debts = []
     is_user_finished_submitting = False
 
@@ -229,26 +242,26 @@ def step_collect_debts():
 
     return debts
 
-def strip_dangerous_characters_from_user_input(pattern, input):
+def strip_dangerous_characters_from_user_input(pattern: str, input: str) -> str:
     if isinstance(input, str):
         return re.sub(pattern, "", input)
     else:
         raise TypeError(f"{input!r} is not a string; cannot strip")
 
-def validate_input_option_in_options(input, options):
+def validate_input_option_in_options(input: str, options: [str, ...]) -> bool:
     if input in options:
         return True
     else:
         return False
 
-def validate_input_numerical(decimal):
+def validate_input_numerical(decimal: Decimal) -> bool:
     if is_decimal_positive(decimal):
         return True
     else:
         print(f"{float(decimal)!r} was negative")
         return False
 
-def validate_input(type, user_input_normalized, options):
+def validate_input(type: str, user_input_normalized: NormalizedUserInput, options: [str, ...]) -> bool:
     valid = True
 
     if user_input_normalized == None:
