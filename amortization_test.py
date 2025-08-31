@@ -2,7 +2,7 @@
 from decimal import Decimal, ROUND_HALF_UP
 import pytest
 # Modules
-from amortization import Amortization
+import amortization as Amortization
 
 class TestAmortization:
     def test_calculate_amortization_schedule(self):
