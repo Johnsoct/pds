@@ -291,7 +291,7 @@ class TestValidateInput:
         for test in passing_tests:
             monkeypatch.setattr("builtins.input", lambda _: test)
 
-            confirm_debt_information(*debt_information, testing = False)
+            confirm_debt_information(debt_information, testing = False)
             
             # Prepare the stdout messages to assert against
             balance = format_currency(Decimal(debt_information[0]))

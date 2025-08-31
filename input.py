@@ -3,20 +3,27 @@ from decimal import *
 import json
 import locale
 import re
-from typing import Literal, NewType
+from typing import NewType, TypedDict
 # Constants
 from constants import C 
 # Types
 type AdditionalContributionAmount = NewType('AdditionalContributionAmount', Decimal)
 type AdditionalContributionFrequency = NewType('AdditionalContributionFrequency', "never" | "bi-monthly" | "bi-weekly" | "monthly" | "weekly" | "yearly")
 type AdditionalContributionInformation = NewType('AdditionalContributionInformation', (AdditionalContributionFrequency, AdditionalContributionAmount))
-type DebtInformation = NewType('DebtInformation', (Decimal, Decimal, Decimal, Decimal))
-type NormalizedUserInput = Literal[str | Decimal]
+type CurrentBalance = NewType('CurrentBalance', Decimal);
+type InterestRate = NewType('InterestRate', Decimal);
+type OriginalLoanAmount = NewType('OriginalLoanAmount', Decimal);
+type DebtInformation = NewType('DebtInformation', (CurrentBalance, InterestRate, OriginalLoanAmount, TermLength))
+DictState = TypedDict('DictState', {
+    "additional_contribution_information": AdditionalContributionInformation,
+    "debts": list[DebtInformation],
+})
+type NormalizedUserInput = str | Decimal
+type TermLength = NewType('TermLength', Decimal);
 
-state = {
-    "additional_contribution_amount": "0",
-    "additional_contribution_frequency": "never",
-    "debts": [], #  current_balance, interest_rate, original_loan_amount, term_length
+state: DictState = {
+    "additional_contribution_information": (0, "never"),
+    "debts": [],
 }
 
 def cast_to_decimal(string: str) -> Decimal:
@@ -42,7 +49,7 @@ def collect_additional_contribution_information(testing = False) -> (AdditionalC
 
     return additional_contribution_amount, additional_contribution_frequency
 
-def collect_debt_information() -> (Decimal, Decimal, Decimal, Decimal):
+def collect_debt_information() -> DebtInformation:
     print()
     current_balance = collect_input("numerical", "What is the current balance of the loan? ")
     interest_rate = collect_input("numerical", "What is the interest rate of the loan? ")
@@ -88,14 +95,11 @@ def confirm_additional_debt_intent(testing = False) -> bool:
     return get_user_confirmation_comparison(user_input_confirmation)
 
 def confirm_debt_information(
-    current_balance: Decimal,
-    interest_rate: Decimal,
-    loan_amount: Decimal,
-    term_length: Decimal,
+    debt_information: DebtInformation,
     testing = False,
 ) -> bool:
     print()
-    display_debt_information((current_balance, interest_rate, loan_amount, term_length))
+    display_debt_information(debt_information)
     print("---------------------------------------")
     print("Does this information look correct?")
     print("---------------------------------------")
@@ -169,7 +173,6 @@ def introduce_user_to_process():
     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325\n")
 
 def is_decimal_positive(decimal: Decimal) -> bool:
-    print(decimal)
     return not Decimal.is_signed(decimal)
 
 def normalize_user_input(type: str, input: str, replace_pattern: str) -> NormalizedUserInput:
@@ -206,7 +209,7 @@ def step_collect_additional_contribution() -> AdditionalContributionInformation 
         print()
         print("Skipping additional contributions...")
         
-        return None 
+        return None
 
 def step_collect_debts() -> [DebtInformation, ...]:
     debts = []
@@ -214,7 +217,7 @@ def step_collect_debts() -> [DebtInformation, ...]:
 
     while not is_user_finished_submitting:
         debt_information = collect_debt_information()
-        user_confirmation = confirm_debt_information(*debt_information)
+        user_confirmation = confirm_debt_information(debt_information)
 
         if user_confirmation:
             debts.append(debt_information)
@@ -288,8 +291,7 @@ def main():
 
     state["debts"] = debts
     if additional_contribution:
-        state["additional_contribution_amount"] = additional_contribution[0]
-        state["additional_contribution_frequency"] = additional_contribution[1]
+        state["additional_contribution_information"] = (additional_contribution[0], additional_contribution[1])
 
     write_to_tmp_file(state, "/home/taylor/dev/pds")
 
