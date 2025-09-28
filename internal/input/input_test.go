@@ -2,6 +2,7 @@ package input
 
 import (
 	"github/Johnsoct/pds/internal/utility"
+	"slices"
 	"testing"
 )
 
@@ -40,8 +41,16 @@ func TestCastToDecimal(t *testing.T) {
 }
 
 func TestGetOptions(t *testing.T) {
-	if result := getOptions("frequency"); result != utility.FREQUENCIES {
-		t.Errorf("'frequency' did not return frequency constants")
+	if result := getOptions("frequency"); !slices.Equal(result, utility.FREQUENCIES) {
+		t.Errorf("'frequency' did not return frequency constants; returned %v", result)
+	}
+
+	if result := getOptions("confirmation"); !slices.Equal(result, utility.CONFIRMATIONS) {
+		t.Errorf("'confirmation' did not return confirmation constants; returned %v", result)
+	}
+
+	if result := getOptions("undefined"); result == nil {
+		t.Errorf("Non-existent options did not return empty slice; returned %v", result)
 	}
 }
 

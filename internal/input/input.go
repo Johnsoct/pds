@@ -2,8 +2,8 @@ package input
 
 import (
 	"fmt"
+	"github/Johnsoct/pds/internal/utility"
 	"strconv"
-    "github/Johnsoct/pds/internal/utility"
 )
 
 // Types definitions
@@ -168,39 +168,39 @@ func collectInput(category string, prompt string, testing bool) NormalizedUserIn
 }
 
 // def display_additional_contribution_information(additional_contribution_information: AdditionalContributionInformation):
-//     print()
-//     print()
-//     print()
-//     print("Here is the additional contribution information we collected:\n")
-//     print("---------------------------------------")
-//     print("Here is the information you entered:\n")
-//     print(f"Frequency: {additional_contribution_information[1]}")
-//     print(f"Amount: {format_currency(additional_contribution_information[0])}")
 //
+//	print()
+//	print()
+//	print()
+//	print("Here is the additional contribution information we collected:\n")
+//	print("---------------------------------------")
+//	print("Here is the information you entered:\n")
+//	print(f"Frequency: {additional_contribution_information[1]}")
+//	print(f"Amount: {format_currency(additional_contribution_information[0])}")
 //
 // def display_debt_information(debt_information: DebtInformation):
-//     print("Here is the information you entered:\n")
-//     print(f"Current balance: {format_currency(debt_information[0])}")
-//     print(f"Interest rate: {debt_information[1]}%")
-//     print(f"Original loan amount: {format_currency(debt_information[2])}")
-//     print(f"Term length: {debt_information[3]} months")
 //
+//	print("Here is the information you entered:\n")
+//	print(f"Current balance: {format_currency(debt_information[0])}")
+//	print(f"Interest rate: {debt_information[1]}%")
+//	print(f"Original loan amount: {format_currency(debt_information[2])}")
+//	print(f"Term length: {debt_information[3]} months")
 //
 // def format_currency(value: Decimal) -> str:
-//     rounded_decimal = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-//     locale.setlocale(locale.LC_ALL, '')
-//     return locale.currency(float(rounded_decimal), symbol=True, grouping=True)
 //
-//
-func getOptions(category string) ([]string) {
+//	rounded_decimal = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+//	locale.setlocale(locale.LC_ALL, '')
+//	return locale.currency(float(rounded_decimal), symbol=True, grouping=True)
 
-    if category == "frequency" {
-        return utility.FREQUENCIES
-    } else if category == "confirmation" {
-        return utility.CONFIRMATIONS
-    } else {
-        return []string{}
-    }
+func getOptions(category string) []string {
+	if category == "frequency" {
+		return utility.FREQUENCIES
+	} else if category == "confirmation" {
+		return utility.CONFIRMATIONS
+	} else {
+		return []string{}
+	}
+}
 
 // def get_user_confirmation_comparison(user_input_confirmation: str) -> bool:
 //     # WARN: do not call this before normalize_user_input() and validate_input()
