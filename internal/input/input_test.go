@@ -1,6 +1,9 @@
 package input
 
-import "testing"
+import (
+	"github/Johnsoct/pds/internal/utility"
+	"testing"
+)
 
 // # python Packages
 // import sys
@@ -33,6 +36,12 @@ func TestCastToDecimal(t *testing.T) {
 		if error != nil {
 			t.Errorf("Error casting %s to float; error: %v", test, error)
 		}
+	}
+}
+
+func TestGetOptions(t *testing.T) {
+	if result := getOptions("frequency"); result != utility.FREQUENCIES {
+		t.Errorf("'frequency' did not return frequency constants")
 	}
 }
 

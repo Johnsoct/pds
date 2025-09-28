@@ -3,6 +3,7 @@ package input
 import (
 	"fmt"
 	"strconv"
+    "github/Johnsoct/pds/internal/utility"
 )
 
 // Types definitions
@@ -105,7 +106,7 @@ func collectAdditionalContributionInformation(testing bool) (AdditionalContribut
 //
 //	print()
 //	print(f"Do you intend to contribute an additional amount towards your debt every {
-//	      C.FREQUENCIES}")
+//	      utility.FREQUENCIES}")
 //	print("---------------------------------------")
 //	print("If 'YES', I'll ask you how much and how often")
 //	print("If 'NO', I'll continue to calculating your debt's amortization schedule")
@@ -147,22 +148,23 @@ func collectAdditionalContributionInformation(testing bool) (AdditionalContribut
 //
 //	return get_user_confirmation_comparison(user_input_confirmation)
 func collectInput(category string, prompt string, testing bool) NormalizedUserInput {
-	options = get_options(type)
-	user_input = input(prompt)
-	user_input_normalized = normalize_user_input(
-	    category,
-	    user_input,
-	    C.get_disallowed_dangerous_characters_regex()
-	)
-
-	if not validate_input(type, user_input_normalized, options):
-	    print(f"{user_input!r} was not valid")
-
-	    # NOTE: When testing failed cases, we want to avoid infinite recursion
-	    if not testing:
-	        return collectInput(type, prompt)
-	else:
-	    return user_input_normalized
+	options = getOptions(category)
+	// userInput = input(prompt)
+	// userInputNormalized = normalize_user_input(
+	//     category,
+	//     user_input,
+	//     utility.get_disallowed_dangerous_characters_regex(),
+	// )
+	//
+	// if not validate_input(type, user_input_normalized, options) {
+	//     print(f"{user_input!r} was not valid")
+	//
+	//     # NOTE: When testing failed cases, we want to avoid infinite recursion
+	//     if not testing:
+	//         return collectInput(type, prompt)
+	//    } else {
+	//     return user_input_normalized
+	//    }
 }
 
 // def display_additional_contribution_information(additional_contribution_information: AdditionalContributionInformation):
@@ -190,18 +192,19 @@ func collectInput(category string, prompt string, testing bool) NormalizedUserIn
 //     return locale.currency(float(rounded_decimal), symbol=True, grouping=True)
 //
 //
-// def get_options(type: str) -> (str, ...):
-//     if type == "frequency":
-//         return C.FREQUENCIES
-//     elif type == "confirmation":
-//         return C.CONFIRMATIONS
-//     else:
-//         return []
-//
-//
+func getOptions(category string) ([]string) {
+
+    if category == "frequency" {
+        return utility.FREQUENCIES
+    } else if category == "confirmation" {
+        return utility.CONFIRMATIONS
+    } else {
+        return []string{}
+    }
+
 // def get_user_confirmation_comparison(user_input_confirmation: str) -> bool:
 //     # WARN: do not call this before normalize_user_input() and validate_input()
-//     # NOTE: I do not want to overcomplicated the C.CONFIRMATIONS value type
+//     # NOTE: I do not want to overcomplicated the utility.CONFIRMATIONS value type
 //     # because validate_input_option_in_options would get unnecessarily complicated
 //     if user_input_confirmation and "y" in user_input_confirmation:
 //         return True
