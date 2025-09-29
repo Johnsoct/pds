@@ -1,8 +1,11 @@
 package input
 
 import (
+	"bufio"
 	"fmt"
 	"github/Johnsoct/pds/internal/utility"
+	"io"
+	"os"
 	"strconv"
 )
 
@@ -57,28 +60,28 @@ func castToDecimal(str string) (float64, error) {
 }
 
 // TEST:
-func collectAdditionalContributionInformation(testing bool) (AdditionalContributionFrequency, AdditionalContributionAmount) {
-	fmt.Println()
-
-	additionalContributionFrequency := collectInput(
-		"frequency",
-		"How often do you want to contribute an additional amount to your debt?",
-		testing,
-	)
-	additionalContributionAmount := collectInput(
-		"numerical",
-		"How much would you like to contribute every"+"additional_contribution_frequency?",
-		testing,
-	)
-
-	return additionalContributionFrequency, additionalContributionAmount
-}
+// func collectAdditionalContributionInformation(testing bool) (AdditionalContributionFrequency, AdditionalContributionAmount) {
+// 	fmt.Println()
+//
+// 	additionalContributionFrequency := collectInput(
+// 		"frequency",
+// 		"How often do you want to contribute an additional amount to your debt?",
+// 		testing,
+// 	)
+// 	additionalContributionAmount := collectInput(
+// 		"numerical",
+// 		"How much would you like to contribute every"+"additional_contribution_frequency?",
+// 		testing,
+// 	)
+//
+// 	return additionalContributionFrequency, additionalContributionAmount
+// }
 
 // def collect_debt_information() -> DebtInformation:
 //
 //	print()
 //	current_balance = collectInput(
-//	    "numerical", "What is the current balance of the loan? ")
+//	   "numerical", "What is the current balance of the loan? ")
 //	interest_rate = collectInput(
 //	    "numerical", "What is the interest rate of the loan? ")
 //	loan_amount = collectInput(
@@ -147,25 +150,25 @@ func collectAdditionalContributionInformation(testing bool) (AdditionalContribut
 //	user_input_confirmation = collectInput("confirmation", testing=testing)
 //
 //	return get_user_confirmation_comparison(user_input_confirmation)
-func collectInput(category string, prompt string, testing bool) NormalizedUserInput {
-	options = getOptions(category)
-	// userInput = input(prompt)
-	// userInputNormalized = normalize_user_input(
-	//     category,
-	//     user_input,
-	//     utility.get_disallowed_dangerous_characters_regex(),
-	// )
-	//
-	// if not validate_input(type, user_input_normalized, options) {
-	//     print(f"{user_input!r} was not valid")
-	//
-	//     # NOTE: When testing failed cases, we want to avoid infinite recursion
-	//     if not testing:
-	//         return collectInput(type, prompt)
-	//    } else {
-	//     return user_input_normalized
-	//    }
-}
+// func collectInput(category string, prompt string, testing bool) NormalizedUserInput {
+// options := getOptions(category)
+// userInput := getInput(fmt.Scanln, prompt)
+// userInputNormalized = normalize_user_input(
+//     category,
+//     user_input,
+//     utility.get_disallowed_dangerous_characters_regex(),
+// )
+//
+// if not validate_input(type, user_input_normalized, options) {
+//     print(f"{user_input!r} was not valid")
+//
+//     # NOTE: When testing failed cases, we want to avoid infinite recursion
+//     if not testing:
+//         return collectInput(type, prompt)
+//    } else {
+//     return user_input_normalized
+//    }
+// }
 
 // def display_additional_contribution_information(additional_contribution_information: AdditionalContributionInformation):
 //
@@ -200,6 +203,19 @@ func getOptions(category string) []string {
 	} else {
 		return []string{}
 	}
+}
+
+func GetInput(reader io.Reader, prompt string) (text string, err error) {
+	scanner := bufio.NewScanner(reader)
+
+	fmt.Print(prompt + ": ")
+	scanner.Scan()
+
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to get user input", err)
+	}
+
+	return scanner.Text(), scanner.Err()
 }
 
 // def get_user_confirmation_comparison(user_input_confirmation: str) -> bool:

@@ -3,6 +3,7 @@ package input
 import (
 	"github/Johnsoct/pds/internal/utility"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -36,6 +37,16 @@ func TestCastToDecimal(t *testing.T) {
 
 		if error != nil {
 			t.Errorf("Error casting %s to float; error: %v", test, error)
+		}
+	}
+}
+
+func TestGetInput(t *testing.T) {
+	passingTests := []string{"test", "test input", "1", "1.", "1.9"}
+
+	for _, s := range passingTests {
+		if text, err := GetInput(strings.NewReader(s), "Prompt"); text != s {
+			t.Errorf("User input was not returned. Stdin: %s. Stdout %s. Stderr %v.", s, text, err)
 		}
 	}
 }
