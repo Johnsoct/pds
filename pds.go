@@ -1,1 +1,4 @@
-package pds
+package main
+
+func main() {
+}
