@@ -205,7 +205,7 @@ func getOptions(category string) []string {
 	}
 }
 
-func GetInput(reader io.Reader, prompt string) (text string, err error) {
+func getInput(reader io.Reader, prompt string) (text string, err error) {
 	scanner := bufio.NewScanner(reader)
 
 	fmt.Print(prompt + ": ")
