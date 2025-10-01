@@ -8,12 +8,6 @@ import (
 	"testing"
 )
 
-// # python Packages
-// import sys
-// from decimal import Decimal, ROUND_HALF_UP
-// import json
-// from _pytest.config.argparsing import FILE_OR_DIR
-
 func TestCastToDecimal(t *testing.T) {
 	testsFailing := []string{
 		"a", "1s", ".", "1.o1",
@@ -66,8 +60,29 @@ func TestGetOptions(t *testing.T) {
 	}
 }
 
-// class TestInputUtilities:
-//
+func TestNormalizeUserInput(t *testing.T) {
+	testsPassing := []struct {
+		paramCategory string
+		paramInput    string
+		expectation   string
+	}{
+		{paramCategory: "frequency", paramInput: "MONTHLY", expectation: "monthly"},
+		{paramCategory: "frequency", paramInput: "Monthly", expectation: "monthly"},
+		{paramCategory: "frequency", paramInput: "monthly", expectation: "monthly"},
+		{paramCategory: "frequency", paramInput: "Bi-Weekly", expectation: "bi-weekly"},
+		{paramCategory: "numerical", paramInput: "$100", expectation: fmt.Sprintf("%.2f", 100.00)},
+		{paramCategory: "numerical", paramInput: "$10,000", expectation: fmt.Sprintf("%.2f", 10000.00)},
+		{paramCategory: "numerical", paramInput: "10%", expectation: fmt.Sprintf("%.2f", 100.00)},
+		{paramCategory: "numerical", paramInput: "55.5%", expectation: fmt.Sprintf("%.2f", 55.50)},
+	}
+
+	for _, value := range testsPassing {
+		if normalizeUserInput(value.paramCategory, value.paramInput) != value.expectation {
+			t.Errorf("normalizeUserInput(%s, %s) did not output \"%s\"", value.paramCategory, value.paramInput, value.expectation)
+		}
+	}
+}
+
 //	    def test_format_currency(self):
 //	        passing_tests = [
 //	            { "parameter": Decimal(100), "result": "$100.00" },
@@ -78,11 +93,6 @@ func TestGetOptions(t *testing.T) {
 //
 //	        for test in passing_tests:
 //	            assert format_currency(test["parameter"]) == test["result"]
-//
-//	    def test_get_options(self):
-//	        assert get_options("confirmation") == utility.CONFIRMATIONS
-//	        assert get_options("frequency") == utility.FREQUENCIES
-//	        assert get_options("unknown") == []
 //
 //	    def test_is_decimal_positive(self):
 //	        failing_tests = [-0.1, -2]
@@ -378,28 +388,6 @@ func TestGetOptions(t *testing.T) {
 //	        assert get_user_confirmation_comparison(
 //	            normalizeUserInput("confirmation", test, utility.get_disallowed_dangerous_characters_regex())
 //	        )
-func TestNormalizeUserInput(t *testing.T) {
-	testsPassing := []struct {
-		paramCategory string
-		paramInput    string
-		expectation   string
-	}{
-		{paramCategory: "frequency", paramInput: "MONTHLY", expectation: "monthly"},
-		{paramCategory: "frequency", paramInput: "Monthly", expectation: "monthly"},
-		{paramCategory: "frequency", paramInput: "monthly", expectation: "monthly"},
-		{paramCategory: "frequency", paramInput: "Bi-Weekly", expectation: "bi-weekly"},
-		{paramCategory: "numerical", paramInput: "$100", expectation: fmt.Sprintf("%.2f", 100.00)},
-		{paramCategory: "numerical", paramInput: "$10,000", expectation: fmt.Sprintf("%.2f", 10000.00)},
-		{paramCategory: "numerical", paramInput: "10%", expectation: fmt.Sprintf("%.2f", 100.00)},
-		{paramCategory: "numerical", paramInput: "55.5%", expectation: fmt.Sprintf("%.2f", 55.50)},
-	}
-
-	for _, value := range testsPassing {
-		if normalizeUserInput(value.paramCategory, value.paramInput) != value.expectation {
-			t.Errorf("normalizeUserInput(%s, %s) did not output \"%s\"", value.paramCategory, value.paramInput, value.expectation)
-		}
-	}
-}
 
 //     def test_validate_input(self):
 //         failling_tests = [
