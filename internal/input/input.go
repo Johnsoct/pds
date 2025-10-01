@@ -7,19 +7,20 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Types definitions
 // Types definitions
 // Types definitions
 type (
-	AdditionalContributionFrequency   string
 	Dollars                           float32
 	InterestRate                      float32
-	NormalizedUserInput               string
 	TermLength                        int
 	AdditionalContributionAmount      = Dollars
+	AdditionalContributionFrequency   = string
 	CurrentBalance                    = Dollars
+	NormalizedUserInput               = string
 	OriginalLoanAmount                = Dollars
 	AdditionalContributionInformation struct {
 		AdditionalContributionAmount    AdditionalContributionAmount
@@ -151,23 +152,24 @@ func castToDecimal(str string) (float64, error) {
 //
 //	return get_user_confirmation_comparison(user_input_confirmation)
 // func collectInput(category string, prompt string, testing bool) NormalizedUserInput {
-// options := getOptions(category)
-// userInput := getInput(fmt.Scanln, prompt)
-// userInputNormalized = normalize_user_input(
-//     category,
-//     user_input,
-//     utility.get_disallowed_dangerous_characters_regex(),
-// )
+//     options := getOptions(category)
+//     userInput := getInput(fmt.Scanln, prompt)
+//     userInputNormalized := normalizeUserInput(
+//         category,
+//         user_input,
+//         utility.get_disallowed_dangerous_characters_regex(),
+//     )
 //
-// if not validate_input(type, user_input_normalized, options) {
-//     print(f"{user_input!r} was not valid")
+//     if !validate_input(type, user_input_normalized, options) {
+//         print(f"{user_input!r} was not valid")
 //
-//     # NOTE: When testing failed cases, we want to avoid infinite recursion
-//     if not testing:
-//         return collectInput(type, prompt)
-//    } else {
-//     return user_input_normalized
-//    }
+//         # NOTE: When testing failed cases, we want to avoid infinite recursion
+//         if !testing {
+//             return collectInput(type, prompt)
+//        } else {
+//         return user_input_normalized
+//        }
+//     }
 // }
 
 // def display_additional_contribution_information(additional_contribution_information: AdditionalContributionInformation):
@@ -219,42 +221,43 @@ func getInput(reader io.Reader, prompt string) (text string, err error) {
 }
 
 // def get_user_confirmation_comparison(user_input_confirmation: str) -> bool:
-//     # WARN: do not call this before normalize_user_input() and validate_input()
-//     # NOTE: I do not want to overcomplicated the utility.CONFIRMATIONS value type
-//     # because validate_input_option_in_options would get unnecessarily complicated
-//     if user_input_confirmation and "y" in user_input_confirmation:
-//         return True
-//     else:
-//         return False
 //
+//	# WARN: do not call this before normalizeUserInput() and validate_input()
+//	# NOTE: I do not want to overcomplicated the utility.CONFIRMATIONS value type
+//	# because validate_input_option_in_options would get unnecessarily complicated
+//	if user_input_confirmation and "y" in user_input_confirmation:
+//	    return True
+//	else:
+//	    return False
 //
 // def introduce_user_to_process():
-//     print("I'm going to ask you a series of questions about your debts and any additional contributions you want to make towards your monthly debt. Each debt will require the original loan amount, interest rate, term length, and the current balance.")
-//     print("")
-//     print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325\n")
 //
+//	print("I'm going to ask you a series of questions about your debts and any additional contributions you want to make towards your monthly debt. Each debt will require the original loan amount, interest rate, term length, and the current balance.")
+//	print("")
+//	print("When entering numerical values, such as dollars or percents, do not use special characters, such as $ or commas, and express percents as decimals, such as 3.25 instead of 0.0325\n")
 //
 // def is_decimal_positive(decimal: Decimal) -> bool:
-//     return not Decimal.is_signed(decimal)
 //
+//	return not Decimal.is_signed(decimal)
 //
-// def normalize_user_input(type: str, input: str, replace_pattern: str) -> NormalizedUserInput:
-//     if not isinstance(input, str):
-//         raise TypeError
-//
-//     input_mutated = input.lower()
-//
-//     # 1. Strip of dangerous characters
-//     input_mutated = strip_dangerous_characters_from_user_input(
-//         replace_pattern, input_mutated)
-//
-//     # 2. Cast to appropriate type, if necessary
-//     if type == "numerical":
-//         input_mutated = cast_to_decimal(input_mutated)
-//
-//     return input_mutated
-//
-//
+// func normalizeUserInput(category, input, replace_pattern string) NormalizedUserInput {
+func normalizeUserInput(category, input string) NormalizedUserInput {
+	inputMutated := strings.ToLower(input)
+	//
+	// // 1. Strip of dangerous characters
+	// inputMutated = strip_dangerous_characters_from_user_input(
+	//     replace_pattern,
+	//     input_mutated
+	// )
+	//
+	// // 2. Cast to appropriate type, if necessary
+	// if (category == "numerical") {
+	//     inputMutated = cast_to_decimal(inputMutated)
+	// }
+
+	return inputMutated
+}
+
 // def step_collect_additional_contribution() -> AdditionalContributionInformation | None:
 //     additional_contribution_confirmation = confirm_additional_contribution_intent()
 //

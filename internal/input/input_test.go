@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"github/Johnsoct/pds/internal/utility"
 	"slices"
 	"strings"
@@ -45,7 +46,7 @@ func TestGetInput(t *testing.T) {
 	passingTests := []string{"test", "test input", "1", "1.", "1.9"}
 
 	for _, s := range passingTests {
-		if text, err := GetInput(strings.NewReader(s), "Prompt"); text != s {
+		if text, err := getInput(strings.NewReader(s), "Prompt"); text != s {
 			t.Errorf("User input was not returned. Stdin: %s. Stdout %s. Stderr %v.", s, text, err)
 		}
 	}
@@ -66,355 +67,340 @@ func TestGetOptions(t *testing.T) {
 }
 
 // class TestInputUtilities:
-//     def test_format_currency(self):
-//         passing_tests = [
-//             { "parameter": Decimal(100), "result": "$100.00" },
-//             { "parameter": Decimal(100.00), "result": "$100.00" },
-//             { "parameter": Decimal(1200), "result": "$1,200.00" },
-//             { "parameter": Decimal(100.5), "result": "$100.50" },
-//         ]
 //
-//         for test in passing_tests:
-//             assert format_currency(test["parameter"]) == test["result"]
+//	    def test_format_currency(self):
+//	        passing_tests = [
+//	            { "parameter": Decimal(100), "result": "$100.00" },
+//	            { "parameter": Decimal(100.00), "result": "$100.00" },
+//	            { "parameter": Decimal(1200), "result": "$1,200.00" },
+//	            { "parameter": Decimal(100.5), "result": "$100.50" },
+//	        ]
 //
-//     def test_get_options(self):
-//         assert get_options("confirmation") == utility.CONFIRMATIONS
-//         assert get_options("frequency") == utility.FREQUENCIES
-//         assert get_options("unknown") == []
+//	        for test in passing_tests:
+//	            assert format_currency(test["parameter"]) == test["result"]
 //
-//     def test_is_decimal_positive(self):
-//         failing_tests = [-0.1, -2]
-//         passing_tests = [0.0, 1, 12.23]
+//	    def test_get_options(self):
+//	        assert get_options("confirmation") == utility.CONFIRMATIONS
+//	        assert get_options("frequency") == utility.FREQUENCIES
+//	        assert get_options("unknown") == []
 //
-//         for test in failing_tests:
-//             assert not is_decimal_positive(Decimal(test))
+//	    def test_is_decimal_positive(self):
+//	        failing_tests = [-0.1, -2]
+//	        passing_tests = [0.0, 1, 12.23]
 //
-//         for test in passing_tests:
-//             assert is_decimal_positive(Decimal(test))
+//	        for test in failing_tests:
+//	            assert not is_decimal_positive(Decimal(test))
 //
-//     def test_strip_dangerous_characters_from_str(self):
-//         failing_tests = [
-//             0, 0.1, 0.01, 1, 1.1, 1.11, 11, 11.1, 11111.00, 1000000,
-//             { "a": 3 }, [1, 2, 3], (1, 2),
-//         ]
-//         passing_tests = [
-//             ("0", "0"),
-// 			("0.1", "0.1"),
-// 			("0.01", "0.01"),
-// 			("1", "1"),
-// 			("1.1", "1.1"),
-// 			("1.11", "1.11"),
-// 			("11", "11"),
-// 			("11.1", "11.1"),
-// 			("11,111.00", "11111.00"),
-// 			("1,000,000", "1000000"),
-// 			("$1.00", "1.00"),
-// 			("$1", "1"),
-//             (";1", "1"),
-//             ("&&1", "1"),
-//             ("||1", "1"),
-//             ("|1", "1"),
-//             ("(1", "1"),
-//             (")1", "1"),
-//             ("`1", "1"),
-//             (">1", "1"),
-//             (">>1", "1"),
-//             ("<1", "1"),
-//             ("*1", "1"),
-//             ("?1", "1"),
-//             ("~1", "1"),
-//             ("$1", "1"),
-//             (",1", "1"),
-//             ("%1", "1"),
-//         ]
+//	        for test in passing_tests:
+//	            assert is_decimal_positive(Decimal(test))
 //
-//         for test in failing_tests:
-//             with pytest.raises(TypeError):
-//                 strip_dangerous_characters_from_user_input(
-//                     utility.get_disallowed_dangerous_characters_regex(),
-//                     test
-//                 )
+//	    def test_strip_dangerous_characters_from_str(self):
+//	        failing_tests = [
+//	            0, 0.1, 0.01, 1, 1.1, 1.11, 11, 11.1, 11111.00, 1000000,
+//	            { "a": 3 }, [1, 2, 3], (1, 2),
+//	        ]
+//	        passing_tests = [
+//	            ("0", "0"),
+//				("0.1", "0.1"),
+//				("0.01", "0.01"),
+//				("1", "1"),
+//				("1.1", "1.1"),
+//				("1.11", "1.11"),
+//				("11", "11"),
+//				("11.1", "11.1"),
+//				("11,111.00", "11111.00"),
+//				("1,000,000", "1000000"),
+//				("$1.00", "1.00"),
+//				("$1", "1"),
+//	            (";1", "1"),
+//	            ("&&1", "1"),
+//	            ("||1", "1"),
+//	            ("|1", "1"),
+//	            ("(1", "1"),
+//	            (")1", "1"),
+//	            ("`1", "1"),
+//	            (">1", "1"),
+//	            (">>1", "1"),
+//	            ("<1", "1"),
+//	            ("*1", "1"),
+//	            ("?1", "1"),
+//	            ("~1", "1"),
+//	            ("$1", "1"),
+//	            (",1", "1"),
+//	            ("%1", "1"),
+//	        ]
 //
-//         for test in passing_tests:
-//             assert test[1] == strip_dangerous_characters_from_user_input(
-//                 utility.get_disallowed_dangerous_characters_regex(),
-//                 test[0]
-//             )
+//	        for test in failing_tests:
+//	            with pytest.raises(TypeError):
+//	                strip_dangerous_characters_from_user_input(
+//	                    utility.get_disallowed_dangerous_characters_regex(),
+//	                    test
+//	                )
 //
-//     def test_write_to_tmp_file(self):
-//         data = dict(
-//             additional_contribution_amount = "$100.00",
-//             additional_contribution_frequency = "monthly",
-//             debts = [
-//                 ["100", "4", "1000", "36"],
-//             ],
-//         )
-//         directory = "./"
-//         filename = "test_pds.json"
+//	        for test in passing_tests:
+//	            assert test[1] == strip_dangerous_characters_from_user_input(
+//	                utility.get_disallowed_dangerous_characters_regex(),
+//	                test[0]
+//	            )
 //
-//         write_to_tmp_file(data, directory = directory, filename = filename)
+//	    def test_write_to_tmp_file(self):
+//	        data = dict(
+//	            additional_contribution_amount = "$100.00",
+//	            additional_contribution_frequency = "monthly",
+//	            debts = [
+//	                ["100", "4", "1000", "36"],
+//	            ],
+//	        )
+//	        directory = "./"
+//	        filename = "test_pds.json"
 //
-//         f = open(f"{directory}/{filename}", "r")
+//	        write_to_tmp_file(data, directory = directory, filename = filename)
 //
-//         assert json.load(f) == data
+//	        f = open(f"{directory}/{filename}", "r")
 //
-//         f.close()
+//	        assert json.load(f) == data
+//
+//	        f.close()
 //
 // class TestValidateInput:
-//     def test_collect_additional_contribution_information(self, capsys, monkeypatch):
-//         failing_tests = [
-//             ("100", "bimonthly"),
-//             ("100", "biweekly"),
-//             ("abc", "monthly"),
-//             ("abc", "weekly"),
-//         ]
-//         passing_tests = [(frequency, "100") for frequency in utility.FREQUENCIES]
-//         recursively_passing_tests = [
-//             [("abc", "100"), ("bimonthly", "bi-monthly")],
-//             [("abc", "100"), ("biweekly", "bi-weekly")],
-//             [("abc", "100"), ("month", "monthly")],
-//             [("abc", "100"), ("week", "weekly")],
-//             [("abc", "100"), ("year", "yearly")],
-//         ]
 //
-//         for test in failing_tests:
-//             tests = iter(test)
-//             monkeypatch.setattr("builtins.input", lambda _: next(tests))
+//	def test_collect_additional_contribution_information(self, capsys, monkeypatch):
+//	    failing_tests = [
+//	        ("100", "bimonthly"),
+//	        ("100", "biweekly"),
+//	        ("abc", "monthly"),
+//	        ("abc", "weekly"),
+//	    ]
+//	    passing_tests = [(frequency, "100") for frequency in utility.FREQUENCIES]
+//	    recursively_passing_tests = [
+//	        [("abc", "100"), ("bimonthly", "bi-monthly")],
+//	        [("abc", "100"), ("biweekly", "bi-weekly")],
+//	        [("abc", "100"), ("month", "monthly")],
+//	        [("abc", "100"), ("week", "weekly")],
+//	        [("abc", "100"), ("year", "yearly")],
+//	    ]
 //
-//             collect_additional_contribution_information(testing = True)
+//	    for test in failing_tests:
+//	        tests = iter(test)
+//	        monkeypatch.setattr("builtins.input", lambda _: next(tests))
 //
-//             # Prepare the stdout messages to assert against
-//             collect_input_stdout = f"was not valid"
-//             test_stdout = capsys.readouterr().out
+//	        collect_additional_contribution_information(testing = True)
 //
-//             assert f"{collect_input_stdout}" in f"{test_stdout}"
+//	        # Prepare the stdout messages to assert against
+//	        collect_input_stdout = f"was not valid"
+//	        test_stdout = capsys.readouterr().out
 //
-//         for test in passing_tests:
-//             tests = iter(test)
+//	        assert f"{collect_input_stdout}" in f"{test_stdout}"
 //
-//             monkeypatch.setattr("builtins.input", lambda _: next(tests))
+//	    for test in passing_tests:
+//	        tests = iter(test)
 //
-//             assert collect_additional_contribution_information() == (Decimal(test[1]), test[0])
+//	        monkeypatch.setattr("builtins.input", lambda _: next(tests))
 //
-//         for test in recursively_passing_tests:
-//             tests = iter([*test[1], *test[0]])
+//	        assert collect_additional_contribution_information() == (Decimal(test[1]), test[0])
 //
-//             monkeypatch.setattr("builtins.input", lambda _: next(tests))
+//	    for test in recursively_passing_tests:
+//	        tests = iter([*test[1], *test[0]])
 //
-//             assert collect_additional_contribution_information() == (Decimal(test[0][1]), test[1][1])
+//	        monkeypatch.setattr("builtins.input", lambda _: next(tests))
 //
-//     def test_collect_input(self, capsys, monkeypatch):
-//         failing_tests = [
-//             ("confirmation", "", "abc"),
-//             ("confirmation", "", "noh"),
-//             ("numerical", "What is the current balance of the loan?", "abc"),
-//             ("numerical", "What is the interest rate of the loan?", "$12.00 cents"),
-//             ("numerical", "What was the original amount of the loan?", "-12"),
-//             ("numerical", "What is the term length of the loan?", "sixty months"),
-//         ]
-//         passing_tests = [
-//             ("confirmation", "", "yes"),
-//             ("confirmation", "", "y"),
-//             ("confirmation", "", "YES"),
-//             ("confirmation", "", "Yes"),
-//             ("confirmation", "", "no"),
-//             ("confirmation", "", "n"),
-//             ("confirmation", "", "NO"),
-//             ("confirmation", "", "No"),
-//             ("numerical", "What is the current balance of the loan?", "9,000"),
-//             ("numerical", "What is the interest rate of the loan?", "12"),
-//             ("numerical", "What was the original amount of the loan?", "12,000"),
-//             ("numerical", "What is the term length of the loan?", "60"),
-//         ]
-//         recursively_passing_tests = [
-//             ("confirmation", "", ["yah", "yes"]),
-//             ("confirmation", "", ["nah", "no"]),
-//             ("numerical", "What is the current balance of the loan?", ["abc", "9,000"]),
-//             ("numerical", "What is the interest rate of the loan?", ["$12.00 cents", "12"]),
-//             ("numerical", "What was the original amount of the loan?", ["-12", "12,000"]),
-//             ("numerical", "What is the term length of the loan?", ["sixty months", "60"]),
-//         ]
+//	        assert collect_additional_contribution_information() == (Decimal(test[0][1]), test[1][1])
 //
-//         for test in failing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test[2])
+//	def test_collect_input(self, capsys, monkeypatch):
+//	    failing_tests = [
+//	        ("confirmation", "", "abc"),
+//	        ("confirmation", "", "noh"),
+//	        ("numerical", "What is the current balance of the loan?", "abc"),
+//	        ("numerical", "What is the interest rate of the loan?", "$12.00 cents"),
+//	        ("numerical", "What was the original amount of the loan?", "-12"),
+//	        ("numerical", "What is the term length of the loan?", "sixty months"),
+//	    ]
+//	    passing_tests = [
+//	        ("confirmation", "", "yes"),
+//	        ("confirmation", "", "y"),
+//	        ("confirmation", "", "YES"),
+//	        ("confirmation", "", "Yes"),
+//	        ("confirmation", "", "no"),
+//	        ("confirmation", "", "n"),
+//	        ("confirmation", "", "NO"),
+//	        ("confirmation", "", "No"),
+//	        ("numerical", "What is the current balance of the loan?", "9,000"),
+//	        ("numerical", "What is the interest rate of the loan?", "12"),
+//	        ("numerical", "What was the original amount of the loan?", "12,000"),
+//	        ("numerical", "What is the term length of the loan?", "60"),
+//	    ]
+//	    recursively_passing_tests = [
+//	        ("confirmation", "", ["yah", "yes"]),
+//	        ("confirmation", "", ["nah", "no"]),
+//	        ("numerical", "What is the current balance of the loan?", ["abc", "9,000"]),
+//	        ("numerical", "What is the interest rate of the loan?", ["$12.00 cents", "12"]),
+//	        ("numerical", "What was the original amount of the loan?", ["-12", "12,000"]),
+//	        ("numerical", "What is the term length of the loan?", ["sixty months", "60"]),
+//	    ]
 //
-//             collect_input(test[0], test[1], testing = True)
+//	    for test in failing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test[2])
 //
-//             # Prepare the stdout messages to assert against
-//             collect_input_stdout = f"{test[2]!r} was not valid"
-//             test_stdout = capsys.readouterr().out
+//	        collect_input(test[0], test[1], testing = True)
 //
-//             assert f"{collect_input_stdout}" in f"{test_stdout}"
+//	        # Prepare the stdout messages to assert against
+//	        collect_input_stdout = f"{test[2]!r} was not valid"
+//	        test_stdout = capsys.readouterr().out
 //
-//         for test in passing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test[2])
+//	        assert f"{collect_input_stdout}" in f"{test_stdout}"
 //
-//             normalized_user_input = collect_input(test[0], test[1])
+//	    for test in passing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test[2])
 //
-//             assert normalized_user_input == normalize_user_input(
-//                 test[0],
-//                 test[2],
-//                 utility.get_disallowed_dangerous_characters_regex()
-//             )
+//	        normalized_user_input = collect_input(test[0], test[1])
 //
-//         for test in recursively_passing_tests:
-//             tests = iter(test[2])
+//	        assert normalized_user_input == normalizeUserInput(
+//	            test[0],
+//	            test[2],
+//	            utility.get_disallowed_dangerous_characters_regex()
+//	        )
 //
-//             monkeypatch.setattr("builtins.input", lambda _: next(tests))
+//	    for test in recursively_passing_tests:
+//	        tests = iter(test[2])
 //
-//             collect_input_output = collect_input(test[0], test[1])
-//             normalized_user_input = normalize_user_input(
-//                 test[0],
-//                 test[2][1],
-//                 utility.get_disallowed_dangerous_characters_regex(),
-//             )
+//	        monkeypatch.setattr("builtins.input", lambda _: next(tests))
 //
-//             assert collect_input_output == normalized_user_input
+//	        collect_input_output = collect_input(test[0], test[1])
+//	        normalized_user_input = normalizeUserInput(
+//	            test[0],
+//	            test[2][1],
+//	            utility.get_disallowed_dangerous_characters_regex(),
+//	        )
 //
-//     def test_confirm_additional_contribution_intent(self, capsys, monkeypatch):
-//         failing_tests = ["yess", "yers", "yeh", "nah", "nay", "noo"]
-//         passing_tests = [*utility.CONFIRMATIONS]
+//	        assert collect_input_output == normalized_user_input
 //
-//         for test in failing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test)
+//	def test_confirm_additional_contribution_intent(self, capsys, monkeypatch):
+//	    failing_tests = ["yess", "yers", "yeh", "nah", "nay", "noo"]
+//	    passing_tests = [*utility.CONFIRMATIONS]
 //
-//             confirm_additional_contribution_intent(testing = True)
+//	    for test in failing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test)
 //
-//             # Prepare the stdout messages to assert against
-//             confirm_additional_contribution_stdout = f"{test!r} was not valid"
-//             test_stdout = capsys.readouterr().out
+//	        confirm_additional_contribution_intent(testing = True)
 //
-//             assert f"{confirm_additional_contribution_stdout}" in f"{test_stdout}"
+//	        # Prepare the stdout messages to assert against
+//	        confirm_additional_contribution_stdout = f"{test!r} was not valid"
+//	        test_stdout = capsys.readouterr().out
 //
-//         for test in passing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test)
+//	        assert f"{confirm_additional_contribution_stdout}" in f"{test_stdout}"
 //
-//             if "y" in test:
-//                 assert confirm_additional_contribution_intent()
-//             else:
-//                 assert not confirm_additional_contribution_intent()
+//	    for test in passing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test)
 //
-//     def test_confirm_additional_debt_intent(self, capsys, monkeypatch):
-//         failing_tests = ["yess", "yers", "yeh", "nah", "nay", "noo"]
-//         passing_tests = [*utility.CONFIRMATIONS]
+//	        if "y" in test:
+//	            assert confirm_additional_contribution_intent()
+//	        else:
+//	            assert not confirm_additional_contribution_intent()
 //
-//         for test in failing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test)
+//	def test_confirm_additional_debt_intent(self, capsys, monkeypatch):
+//	    failing_tests = ["yess", "yers", "yeh", "nah", "nay", "noo"]
+//	    passing_tests = [*utility.CONFIRMATIONS]
 //
-//             confirm_additional_debt_intent(testing = True)
+//	    for test in failing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test)
 //
-//             # Prepare the stdout messages to assert against
-//             confirm_additional_debt_intent_stdout = f"{test!r} was not valid"
-//             test_stdout = capsys.readouterr().out
+//	        confirm_additional_debt_intent(testing = True)
 //
-//             assert f"{confirm_additional_debt_intent_stdout}" in f"{test_stdout}"
+//	        # Prepare the stdout messages to assert against
+//	        confirm_additional_debt_intent_stdout = f"{test!r} was not valid"
+//	        test_stdout = capsys.readouterr().out
 //
-//         for test in passing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test)
+//	        assert f"{confirm_additional_debt_intent_stdout}" in f"{test_stdout}"
 //
-//             if "y" in test:
-//                 assert confirm_additional_debt_intent()
-//             else:
-//                 assert not confirm_additional_debt_intent()
+//	    for test in passing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test)
 //
-//     def test_confirm_additional_contribution_information(self, capsys, monkeypatch):
-//         additional_contribution_information = (Decimal(100.00), "monthly")
-//         passing_tests = [*utility.CONFIRMATIONS]
+//	        if "y" in test:
+//	            assert confirm_additional_debt_intent()
+//	        else:
+//	            assert not confirm_additional_debt_intent()
 //
-//         for test in passing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test)
+//	def test_confirm_additional_contribution_information(self, capsys, monkeypatch):
+//	    additional_contribution_information = (Decimal(100.00), "monthly")
+//	    passing_tests = [*utility.CONFIRMATIONS]
 //
-//             confirm_additional_contribution_information(*additional_contribution_information)
+//	    for test in passing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test)
 //
-//             # Prepare the stdout messages to assert against
-//             amount = format_currency(additional_contribution_information[0])
-//             frequency = additional_contribution_information[1]
-//             confirm_additional_contribution_information_stdout = f"Frequency: {frequency}\nAmount: {amount}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"
-//             test_stdout = capsys.readouterr().out
+//	        confirm_additional_contribution_information(*additional_contribution_information)
 //
-//             assert f"{confirm_additional_contribution_information_stdout}" in f"{test_stdout}"
+//	        # Prepare the stdout messages to assert against
+//	        amount = format_currency(additional_contribution_information[0])
+//	        frequency = additional_contribution_information[1]
+//	        confirm_additional_contribution_information_stdout = f"Frequency: {frequency}\nAmount: {amount}\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to calculating your amortization schedule.\n"
+//	        test_stdout = capsys.readouterr().out
 //
-//             if "y" in test:
-//                 assert confirm_additional_contribution_information(*additional_contribution_information)
+//	        assert f"{confirm_additional_contribution_information_stdout}" in f"{test_stdout}"
 //
-//             else:
-//                 assert not confirm_additional_contribution_information(*additional_contribution_information)
+//	        if "y" in test:
+//	            assert confirm_additional_contribution_information(*additional_contribution_information)
 //
-//     def test_confirm_debt_information(self, capsys, monkeypatch):
-//         debt_information = list(map(Decimal, [100000, 12.5, 32000, 72]))
-//         passing_tests = [*utility.CONFIRMATIONS]
+//	        else:
+//	            assert not confirm_additional_contribution_information(*additional_contribution_information)
 //
-//         for test in passing_tests:
-//             monkeypatch.setattr("builtins.input", lambda _: test)
+//	def test_confirm_debt_information(self, capsys, monkeypatch):
+//	    debt_information = list(map(Decimal, [100000, 12.5, 32000, 72]))
+//	    passing_tests = [*utility.CONFIRMATIONS]
 //
-//             confirm_debt_information(debt_information, testing = False)
+//	    for test in passing_tests:
+//	        monkeypatch.setattr("builtins.input", lambda _: test)
 //
-//             # Prepare the stdout messages to assert against
-//             balance = format_currency(Decimal(debt_information[0]))
-//             loan_amount = format_currency(Decimal(debt_information[2]))
-//             confirm_debt_information_stdout = f"Current balance: {balance}\nInterest rate: {debt_information[1]}%\nOriginal loan amount: {loan_amount}\nTerm length: {debt_information[3]} months\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to adding additional debts, if any.\n"
-//             test_stdout = capsys.readouterr().out
+//	        confirm_debt_information(debt_information, testing = False)
 //
-//             assert f"{confirm_debt_information_stdout}" in f"{test_stdout}"
+//	        # Prepare the stdout messages to assert against
+//	        balance = format_currency(Decimal(debt_information[0]))
+//	        loan_amount = format_currency(Decimal(debt_information[2]))
+//	        confirm_debt_information_stdout = f"Current balance: {balance}\nInterest rate: {debt_information[1]}%\nOriginal loan amount: {loan_amount}\nTerm length: {debt_information[3]} months\n---------------------------------------\nDoes this information look correct?\n---------------------------------------\nIf 'NO', you'll be asked to enter the information again.\nIf 'YES', you'll move on to adding additional debts, if any.\n"
+//	        test_stdout = capsys.readouterr().out
 //
-//             if "y" in test:
-//                 assert confirm_additional_debt_intent()
-//             else:
-//                 assert not confirm_additional_debt_intent()
+//	        assert f"{confirm_debt_information_stdout}" in f"{test_stdout}"
 //
-//     def test_get_user_confirmation_comparison(self):
-//         false_tests = ["n", "N", "no", "NO", "No"]
-//         true_tests = ["y", "Y", "yes", "YES", "Yes"]
+//	        if "y" in test:
+//	            assert confirm_additional_debt_intent()
+//	        else:
+//	            assert not confirm_additional_debt_intent()
 //
-//         for test in false_tests:
-//             assert not get_user_confirmation_comparison(
-//                 normalize_user_input("confirmation", test, utility.get_disallowed_dangerous_characters_regex())
-//             )
+//	def test_get_user_confirmation_comparison(self):
+//	    false_tests = ["n", "N", "no", "NO", "No"]
+//	    true_tests = ["y", "Y", "yes", "YES", "Yes"]
 //
-//         for test in true_tests:
-//             assert get_user_confirmation_comparison(
-//                 normalize_user_input("confirmation", test, utility.get_disallowed_dangerous_characters_regex())
-//             )
+//	    for test in false_tests:
+//	        assert not get_user_confirmation_comparison(
+//	            normalizeUserInput("confirmation", test, utility.get_disallowed_dangerous_characters_regex())
+//	        )
 //
-//     def test_normalize_user_input(self):
-//         failing_tests = [
-//             ("numerical", 1, TypeError), # any numbers
-//             ("numerical", 1.1, TypeError), # any numbers
-//             ("numerical", "1..0", None), # value that can't be cast to decimal
-//         ]
-//         passing_tests = [
-//             ("frequency", "MONTHLY", "monthly"),
-//             ("frequency", "Monthly", "monthly"),
-//             ("frequency", "monthly", "monthly"),
-//             ("frequency", "Bi-Weekly", "bi-weekly"),
-//             ("numerical", "$100", Decimal(100)),
-//             ("numerical", "$10,000", Decimal(10000)),
-//             ("numerical", "10%", Decimal(10)),
-//             ("numerical", "55.5%", Decimal(55.5))
-//         ]
-//
-//         for test in failing_tests:
-//             if test[2] == TypeError:
-//                 with pytest.raises(TypeError):
-//                     assert not normalize_user_input(
-//                             test[0],
-//                             test[1],
-//                             utility.get_disallowed_dangerous_characters_regex()
-//                     )
-//             else:
-//                 assert normalize_user_input(
-//                         test[0],
-//                         test[1],
-//                         utility.get_disallowed_dangerous_characters_regex()
-//                 ) == test[2]
-//
-//         for test in passing_tests:
-//             assert normalize_user_input(
-//                 test[0],
-//                 test[1],
-//                 utility.get_disallowed_dangerous_characters_regex()
-//             ) == test[2]
-//
+//	    for test in true_tests:
+//	        assert get_user_confirmation_comparison(
+//	            normalizeUserInput("confirmation", test, utility.get_disallowed_dangerous_characters_regex())
+//	        )
+func TestNormalizeUserInput(t *testing.T) {
+	testsPassing := []struct {
+		paramCategory string
+		paramInput    string
+		expectation   string
+	}{
+		{paramCategory: "frequency", paramInput: "MONTHLY", expectation: "monthly"},
+		{paramCategory: "frequency", paramInput: "Monthly", expectation: "monthly"},
+		{paramCategory: "frequency", paramInput: "monthly", expectation: "monthly"},
+		{paramCategory: "frequency", paramInput: "Bi-Weekly", expectation: "bi-weekly"},
+		{paramCategory: "numerical", paramInput: "$100", expectation: fmt.Sprintf("%.2f", 100.00)},
+		{paramCategory: "numerical", paramInput: "$10,000", expectation: fmt.Sprintf("%.2f", 10000.00)},
+		{paramCategory: "numerical", paramInput: "10%", expectation: fmt.Sprintf("%.2f", 100.00)},
+		{paramCategory: "numerical", paramInput: "55.5%", expectation: fmt.Sprintf("%.2f", 55.50)},
+	}
+
+	for _, value := range testsPassing {
+		if normalizeUserInput(value.paramCategory, value.paramInput) != value.expectation {
+			t.Errorf("normalizeUserInput(%s, %s) did not output \"%s\"", value.paramCategory, value.paramInput, value.expectation)
+		}
+	}
+}
+
 //     def test_validate_input(self):
 //         failling_tests = [
 //             ("confirmation", "yers"),
@@ -464,7 +450,7 @@ func TestGetOptions(t *testing.T) {
 //             passing_tests.append(("frequency", frequency))
 //
 //         for test in failling_tests:
-//             normalized_user_input = normalize_user_input(test[0], test[1], utility.get_disallowed_dangerous_characters_regex())
+//             normalized_user_input = normalizeUserInput(test[0], test[1], utility.get_disallowed_dangerous_characters_regex())
 //             pattern = None
 //
 //             if test[0] == "frequency":
@@ -475,7 +461,7 @@ func TestGetOptions(t *testing.T) {
 //             assert not validate_input(test[0], normalized_user_input, pattern)
 //
 //         for test in passing_tests:
-//             normalized_user_input = normalize_user_input(test[0], test[1], utility.get_disallowed_dangerous_characters_regex())
+//             normalized_user_input = normalizeUserInput(test[0], test[1], utility.get_disallowed_dangerous_characters_regex())
 //             pattern = None
 //
 //             if test[0] == "frequency":
