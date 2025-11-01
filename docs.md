@@ -1,5 +1,21 @@
 # Logic: Expedited Amortization Schedule
 
+## Formula
+
+### Amortization
+Principle payment = TMP - (OLB * (Interest Rate / 12 Months))
+
+TMP = Total monthly payment
+OLD = Outstanding loan balance
+
+### Total monthly payment
+
+Total payment = Loan amount x ((i * (1 + i)^n) / ((i + 1)^n -1))
+
+i = Monthly interest payment (interest rate / 12 months)
+n = Number of payments (term length in months)
+
+
 ## Notes
 
 * All input will first be "normalized" and escaped before further processing
@@ -9,6 +25,7 @@
 * By creating a pipeline for all input processes to follow, the functions I write to perform small actions along the pipeline RELY on having arguments which have been subject to other processes, such as how `get_user_confirmation_comparison` relies on `user_input_confirmation` (it's argument) to have been normalized through `collect_input`.
     * Without typing, I really don't like this, but with typing, this problem wouldn't be an issue at all, IMO.
 * I really don't like how ambiguous tuples are (including returning multiple values from a function) because when you access values within a tuple, it's not clear what you're accessing, and the index actually matters
+* types are awesome... always use them... sigh
 
 ## Steps
 
